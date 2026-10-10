@@ -1,0 +1,132 @@
+[
+  {
+    "id": "CC-2026-44174",
+    "submittedAt": "2026-10-10T08:32:16.438Z",
+    "status": "Application Received ✓",
+    "currentStage": "Document Verification",
+    "stagesCompleted": [
+      "Application Form"
+    ],
+    "counsellor": {
+      "name": "Dr. Vikram Sethi",
+      "title": "Chief Medical & NEET Advisor",
+      "phone": "+91 98765 43211",
+      "email": "dr.sethi@cerebralcompass.com",
+      "avatar": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=200&q=80"
+    },
+    "paymentStatus": "Pending",
+    "packageSelected": "Complete Admission Assistance",
+    "nextAction": "Senior Counsellor Profile Review Call scheduled within 24 hours",
+    "personal": {
+      "studentName": "vtyfyutfv",
+      "parentName": "ygfftr",
+      "dob": "2026-10-30",
+      "mobile": "gfvtyfy",
+      "whatsapp": "fyudttrc",
+      "email": "ytfvfyt",
+      "address": "",
+      "state": "Delhi NCR"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "",
+      "category": "General / UR",
+      "tenthDetails": "92% (CBSE Board)",
+      "twelfthDetails": "89% (PCMB)",
+      "preferredStateCity": "ggfvfytfdtd",
+      "approximateBudget": "₹15 Lakhs – ₹35 Lakhs"
+    },
+    "preferences": {
+      "countryPreference": "India",
+      "preferredColleges": "",
+      "courseSpecialization": "General Clinical / AI & Data / Finance",
+      "hostelRequirement": "Yes, AC Shared Hostel",
+      "educationLoanRequirement": "Yes, Required"
+    },
+    "documents": [
+      {
+        "type": "Photograph",
+        "name": "",
+        "size": "",
+        "status": "Not uploaded",
+        "required": true
+      },
+      {
+        "type": "ID Proof (Aadhaar / Passport)",
+        "name": "",
+        "size": "",
+        "status": "Not uploaded",
+        "required": true
+      },
+      {
+        "type": "10th Certificate",
+        "name": "",
+        "size": "",
+        "status": "Not uploaded",
+        "required": true
+      },
+      {
+        "type": "12th Certificate / Marksheet",
+        "name": "",
+        "size": "",
+        "status": "Not uploaded",
+        "required": true
+      },
+      {
+        "type": "Entrance Scorecard (NEET/JEE/CAT)",
+        "name": "",
+        "size": "",
+        "status": "Not uploaded",
+        "required": true
+      },
+      {
+        "type": "Category Certificate (if applicable)",
+        "name": "",
+        "size": "",
+        "status": "Optional",
+        "required": false
+      },
+      {
+        "type": "Other Supporting Documents",
+        "name": "",
+        "size": "",
+        "status": "Optional",
+        "required": false
+      }
+    ],
+    "termsAccepted": true
+  },
+  {
+    "id": "CC-2026-42172",
+    "submittedAt": "2026-10-09T16:59:17.927Z",
+    "status": "Application Received ✓",
+    "currentStage": "Document Verification",
+    "stagesCompleted": [
+      "Application Form"
+    ],
+    "counsellor": {
+      "name": "Dr. Vikram Sethi",
+      "title": "Chief Medical & NEET Advisor",
+      "phone": "+91 98765 43211",
+      "email": "dr.sethi@cerebralcompass.com",
+      "avatar": "https://images.unsplash.com/photo-1622253692010-333f2da6031d?auto=format&fit=crop&w=200&q=80"
+    },
+    "paymentStatus": "Pending",
+    "packageSelected": "Complete Admission Assistance",
+    "nextAction": "Senior Counsellor Profile Review Call scheduled within 24 hours",
+    "personal": {
+      "studentName": "Aaditya Sharma",
+      "mobile": "+91 98765 43210",
+      "email": "aaditya@test.com"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "618"
+    },
+    "preferences": {},
+    "documents": [],
+    "termsAccepted": false
+  }
+]

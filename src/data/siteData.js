@@ -1,0 +1,300 @@
+export const siteData = {
+  brand: {
+    name: 'Cerebral Compass',
+    tagline: 'Your Career. Your Direction. Your Future.',
+    subtagline: 'Premier Educational Consultancy for Medical, Engineering, Management, UG/PG and Global Universities.',
+    phone: '+91 98765 43210',
+    whatsapp: '+919876543210',
+    email: 'admissions@cerebralcompass.com',
+    address: '402-404, Zenith Cyber Park, Near Tech Boulevard, Sector 62, Noida, NCR, India',
+    hours: 'Mon - Sat: 9:30 AM - 7:30 PM IST',
+  },
+
+  domains: [
+    {
+      id: 'mbbs',
+      title: 'MBBS / Medical Counselling',
+      shortTitle: 'MBBS & Medical',
+      badge: 'High Demand',
+      description: 'Navigating NEET UG/PG, All India Quota (AIQ 15%), State 85% quotas, Deemed Universities, and NRI/Management seat matrices.',
+      targetExams: ['NEET UG', 'NEET PG', 'INI-CET'],
+      features: [
+        'Round-by-round MCC & State cutoff mapping',
+        'Deemed University fee vs quality benchmarking',
+        'Bond policy, stipend & clinical patient flow analysis',
+        'Special Stray Vacancy & Mop-Up strategy'
+      ],
+      colleges: ['AIIMS Hubs', 'KMC Manipal', 'St. John’s Medical', 'Amrita Kochi', 'DY Patil Pune'],
+      color: 'sky'
+    },
+    {
+      id: 'btech',
+      title: 'B.Tech / Engineering Admissions',
+      shortTitle: 'B.Tech / Engineering',
+      badge: 'Tech & STEM',
+      description: 'Strategic counselling across JoSAA (IITs/NITs/IIITs), CSAB Spot Rounds, BITSAT, VITEEE, MET, COMEDK, and premier state universities.',
+      targetExams: ['JEE Main', 'JEE Advanced', 'BITSAT', 'VITEEE', 'COMEDK'],
+      features: [
+        'Branch vs College ROI algorithm (CSE / AI / Robotics)',
+        'JoSAA preference matrix tailored to individual ranks',
+        'State engineering portal multi-counselling sync',
+        'Scholarship and fee waiver identification'
+      ],
+      colleges: ['IITs/NITs/IIITs', 'BITS Pilani', 'VIT Vellore', 'RV College Bangalore', 'Thapar Patiala'],
+      color: 'blue'
+    },
+    {
+      id: 'mba',
+      title: 'MBA / Management Consultancy',
+      shortTitle: 'MBA / Management',
+      badge: 'Leadership',
+      description: 'End-to-end guidance for CAT, XAT, SNAP, NMAT, GMAT, and CMAT aspirants targeting Tier-1 B-Schools with GD-PI-WAT mentorship.',
+      targetExams: ['CAT', 'XAT', 'SNAP', 'NMAT', 'GMAT'],
+      features: [
+        'Profile evaluation (Academic diversity & work experience)',
+        'Specialization advisory: FinTech, Consulting, Product',
+        '1-on-1 Mock PI & WAT essay masterclasses',
+        'Corporate placement history verified auditing'
+      ],
+      colleges: ['IIMs (CAP & Non-CAP)', 'SPJIMR Mumbai', 'MDI Gurgaon', 'NMIMS Mumbai', 'XLRI Jamshedpur'],
+      color: 'coral'
+    },
+    {
+      id: 'ug_pg',
+      title: 'UG & PG Multidisciplinary',
+      shortTitle: 'UG & PG Streams',
+      badge: 'Comprehensive',
+      description: 'Admissions guidance for CUET-UG/PG, Law (CLAT), Architecture (NATA), Pure Sciences, Biotechnology, and Liberal Arts.',
+      targetExams: ['CUET UG/PG', 'CLAT', 'NATA', 'IPU-CET'],
+      features: [
+        'Central & State University domain matching',
+        'NLU and Private Law School shortlisting',
+        'Integrated 5-Year Masters programs',
+        'Hostel, campus culture and safety advisory'
+      ],
+      colleges: ['Delhi University', 'NLSIU Bangalore', 'Ashoka University', 'BHU Varanasi', 'Christ University'],
+      color: 'indigo'
+    },
+    {
+      id: 'abroad',
+      title: 'Study Abroad (Global Admissions)',
+      shortTitle: 'Study Abroad',
+      badge: 'Global Horizons',
+      description: 'NMC-compliant Medical seats in Georgia, Uzbekistan & Philippines; plus top STEM & Business degrees in USA, UK, Germany, Canada & Europe.',
+      targetExams: ['IELTS', 'TOEFL', 'GRE', 'PTE', 'SAT'],
+      features: [
+        '100% NMC / WHO compliant foreign medical colleges',
+        'Tuition-free public university application in Germany',
+        'SOP, LOR, and Visa mock interview coaching',
+        'Pre-departure orientation & foreign student hostel support'
+      ],
+      colleges: ['Tbilisi State Med (Georgia)', 'TUM Germany', 'Univ of Manchester (UK)', 'NEU Boston (USA)', 'Univ of Melbourne'],
+      color: 'purple'
+    }
+  ],
+
+  services: [
+    {
+      id: 'shortlisting',
+      title: 'College Shortlisting & Predictive Matching',
+      subtitle: 'Data-driven cutoff analytics',
+      description: 'Our proprietary algorithm maps your exact percentile, category rank, and budget across past 5-year closing ranks to create Safe, Moderate, and Ambitious tiers.',
+      icon: 'Target',
+      highlights: ['Zero guesswork', 'Multi-round projection', 'Fee clarity']
+    },
+    {
+      id: 'documentation',
+      title: 'Application & Documentation Assistance',
+      subtitle: 'Flawless verification',
+      description: 'A dedicated documentation specialist validates every affidavit, domicile, category certificate, apostille, and entrance score card before portal submission.',
+      icon: 'FileCheck',
+      highlights: ['Error-free portal filings', 'Domicile & category compliance', 'SOP / LOR review']
+    },
+    {
+      id: 'loan',
+      title: 'Education-Loan Assistance',
+      subtitle: 'Financial freedom & tie-ups',
+      description: 'Direct institutional facilitation with leading public banks (SBI, BoB) and premier private NBFCs (HDFC Credila, Avanse, Auxilo) for collateral & collateral-free loans.',
+      icon: 'BadgePercent',
+      highlights: ['Up to 100% cost of study', 'Lowest interest rate negotiation', 'Fast-track 72hr sanction']
+    }
+  ],
+
+  processSteps: [
+    {
+      step: '01',
+      title: 'Diagnostic Profile Analysis',
+      desc: 'In-depth evaluation of student scores, category advantages, academic trajectory, and parent budget.',
+      tag: 'Day 1'
+    },
+    {
+      step: '02',
+      title: 'Precision College Matrix',
+      desc: 'Formulation of tailored Safe, Target, and Dream college lists with verified fee structures and hostel data.',
+      tag: 'Day 3'
+    },
+    {
+      step: '03',
+      title: 'Strategic Choice Filling',
+      desc: 'Senior counsellor crafts the sequential choice preference lock sheet for MCC, JoSAA, or respective portals.',
+      tag: 'Round Opening'
+    },
+    {
+      step: '04',
+      title: 'Document Vetting & Filing',
+      desc: 'Rigorous pre-verification of all state domicile, caste, medical fitness, and entrance documents.',
+      tag: 'Portal Verification'
+    },
+    {
+      step: '05',
+      title: 'Seat Allotment & Onboarding',
+      desc: 'Guidance through physical reporting, fee deposit verification, upgradation rules, and campus onboarding.',
+      tag: 'Admission Success'
+    }
+  ],
+
+  packages: [
+    {
+      id: 'pkg-personal',
+      name: 'Personalised Counselling',
+      popular: false,
+      price: '₹14,999',
+      originalPrice: '₹24,999',
+      description: 'Ideal for students seeking precision college shortlisting, cutoff prediction, and expert choice-filling strategy.',
+      features: [
+        'Dedicated 1-on-1 Senior Educational Counsellor',
+        'Predictive Cutoff Analysis (All India & State Quotas)',
+        'Customized Choice Preference Locking Sheet',
+        'WhatsApp Support during Counselling Rounds',
+        'Fee Structure & Bond Policy Documentation',
+        'Education Loan Advisory'
+      ],
+      cta: 'Choose Personalised',
+      recommendedFor: 'NEET / JEE / CUET aspirants needing accurate choice filing'
+    },
+    {
+      id: 'pkg-complete',
+      name: 'Complete Admission Assistance',
+      popular: true,
+      price: '₹29,999',
+      originalPrice: '₹45,999',
+      description: 'End-to-end white-glove guidance from registration till campus reporting and final seat allocation.',
+      features: [
+        'Everything in Personalised Counselling',
+        'Dedicated Lead Counsellor + Documentation Officer',
+        'Real-time Multi-State & MCC/JoSAA Portal Filings',
+        'Mop-Up & Stray Vacancy Round Real-time Seat Tracking',
+        'Pre-Screening Document Verification & Legal Vetting',
+        '100% Loan Sanction Fast-Track with Bank Partners',
+        'Campus Physical Reporting Support & Checklist',
+        'Priority 24/7 Counsellor Helpline'
+      ],
+      cta: 'Pay & Start Counselling →',
+      recommendedFor: 'Families wanting guaranteed peace of mind and zero procedural errors'
+    },
+    {
+      id: 'pkg-global',
+      name: 'Global / Medical VIP Elite',
+      popular: false,
+      price: '₹49,999',
+      originalPrice: '₹75,000',
+      description: 'Comprehensive package for MBBS Abroad or Global Universities in USA, UK, Germany & Top Private Deemed Universities.',
+      features: [
+        'Everything in Complete Admission Assistance',
+        'NMC / WHO Verified Medical University Seat Booking',
+        'University Direct Application & Offer Letter Generation',
+        'Apostille & Embassy Document Legalization Guidance',
+        'Visa File Preparation & Mock Embassy Interview',
+        'Forex Card, Currency Hedging & Flight Assistance',
+        'On-Campus Airport Pickup & Local Indian Food Mess Sync'
+      ],
+      cta: 'Book VIP Guidance',
+      recommendedFor: 'Study Abroad and Deemed/NRI Quota applicants'
+    }
+  ],
+
+  testimonials: [
+    {
+      name: 'Aarav Singhania',
+      role: 'MBBS Student at KMC Manipal',
+      score: 'NEET 632 / 720',
+      quote: 'I was terribly confused between All India Round 2 and Karnataka State Quota. Cerebral Compass gave me the exact historical closing trends and saved me from losing a premier seat. Their choice preference sheet was pure gold!',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80',
+      stream: 'MBBS'
+    },
+    {
+      name: 'Pooja Reddy',
+      role: 'B.Tech CSE at NIT Surathkal',
+      score: 'JEE Main 99.12 %ile',
+      quote: 'CSAB spot rounds are intimidating. The team at Cerebral Compass guided my parents and me step-by-step. Without their strategic branch vs campus advice, I would have settled for a much lower tier.',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=200&q=80',
+      stream: 'B.Tech'
+    },
+    {
+      name: 'Dr. Rameshwar Joshi (Parent)',
+      role: 'Father of Ananya Joshi (MBBS Abroad)',
+      score: 'Admitted in Tbilisi, Georgia',
+      quote: 'As a doctor myself, I was very concerned about NMC gazette compliance for foreign MBBS. Cerebral Compass showed transparent documents, assisted with apostille and visa, and my daughter is now thriving.',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=200&q=80',
+      stream: 'Study Abroad'
+    },
+    {
+      name: 'Kunal Mathur',
+      role: 'MBA Candidate at MDI Gurgaon',
+      score: 'CAT 98.4 %ile',
+      quote: 'The GD-PI-WAT interview simulations were harder than the actual interviews! That made the real conversion effortless. Best investment I made for my post-grad career.',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=200&q=80',
+      stream: 'MBA'
+    }
+  ],
+
+  counsellors: [
+    {
+      name: 'Dr. Vikram Sethi',
+      title: 'Chief Medical & NEET Advisor',
+      exp: '14+ Years in Medical Counselling',
+      specialty: 'MCC AIQ, Deemed Universities, State Quotas',
+      phone: '+91 98765 43211',
+      rating: '4.98/5.0'
+    },
+    {
+      name: 'Er. Ananya Sengupta',
+      title: 'Head of Engineering Admissions',
+      exp: '11+ Years in JoSAA / CSAB / Tech Systems',
+      specialty: 'IITs, NITs, BITS, Top State Engineering',
+      phone: '+91 98765 43212',
+      rating: '4.95/5.0'
+    },
+    {
+      name: 'Rohan Varma',
+      title: 'Director of Management & Global Pathways',
+      exp: '12+ Years in B-School & International Visas',
+      specialty: 'IIMs, GMAT, USA, UK, Germany & Georgia',
+      phone: '+91 98765 43213',
+      rating: '4.97/5.0'
+    }
+  ],
+
+  faqs: [
+    {
+      q: 'How does Cerebral Compass differ from ordinary admission agents?',
+      a: 'We operate with 100% transparency, legal documentation, and data-backed algorithms. We never make false promises of "management quotas" that don’t exist legally. Our senior advisors have over a decade of real experience analyzing official MCC, KEA, JoSAA, and international regulatory seat matrices.'
+    },
+    {
+      q: 'When is the best time to enrol for counselling guidance?',
+      a: 'The ideal time is immediately after writing your entrance exams (or during the final prep semester). Early registration enables comprehensive profile auditing, domicile documentation verification, and customized choice matrix formulation before the chaotic counselling portal opens.'
+    },
+    {
+      q: 'Will you handle my document verification and online portal registration?',
+      a: 'Yes! In our Complete Admission Assistance package, a dedicated documentation officer cross-verifies all your certificates, helps you avoid formatting errors that cause seat rejections, and guides you through every step of the official portal uploads.'
+    },
+    {
+      q: 'Can you assist with education loans if my family needs financial support?',
+      a: 'Absolutely. We have established institutional tie-ups with SBI, Bank of Baroda, HDFC Credila, and Avanse. We assist in preparing the required documentation to expedite sanction, often within 72 hours, with collateral-free options up to ₹50 Lakhs for eligible programs.'
+    },
+    {
+      q: 'What is your refund policy if a student decides not to participate?',
+      a: 'We maintain a clear, ethical policy. If you request a cancellation prior to the commencement of your 1-on-1 profile strategy session, you are eligible for an 80% refund. Full details are outlined in our dedicated Legal & Refund Policy page.'
+    }
+  ]
+};
