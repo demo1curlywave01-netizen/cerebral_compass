@@ -9,12 +9,63 @@ import ApplicationFormPage from './pages/ApplicationFormPage';
 import PackagesPaymentPage from './pages/PackagesPaymentPage';
 import AboutContactPage from './pages/AboutContactPage';
 import LegalPage from './pages/LegalPage';
+import AdminPage from './pages/AdminPage';
 
 export default function App() {
-  const [activePage, setActivePage] = useState('home');
+  const getInitialPage = () => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      if (
+        path === '/admin' ||
+        path.startsWith('/admin/') ||
+        hash.includes('admin') ||
+        search.includes('admin')
+      ) {
+        return 'admin';
+      }
+    }
+    return 'home';
+  };
+
+  const [activePage, setActivePage] = useState(getInitialPage);
   const [prefilledCourse, setPrefilledCourse] = useState('');
   const [selectedPackageName, setSelectedPackageName] = useState('');
   const [activeApplicationId, setActiveApplicationId] = useState('');
+
+  // Handle browser URL /admin routing and back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      if (
+        path === '/admin' ||
+        path.startsWith('/admin/') ||
+        hash.includes('admin') ||
+        search.includes('admin')
+      ) {
+        setActivePage('admin');
+      }
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
+
+  // Update browser address bar when switching to or from admin
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      if (activePage === 'admin') {
+        if (window.location.pathname !== '/admin') {
+          window.history.pushState(null, '', '/admin');
+        }
+      } else if (window.location.pathname === '/admin') {
+        window.history.pushState(null, '', '/');
+      }
+    }
+  }, [activePage]);
 
   // Scroll smoothly to top on page switch
   useEffect(() => {
@@ -87,6 +138,10 @@ export default function App() {
 
           {activePage === 'legal' && (
             <LegalPage />
+          )}
+
+          {activePage === 'admin' && (
+            <AdminPage />
           )}
         </div>
       </main>

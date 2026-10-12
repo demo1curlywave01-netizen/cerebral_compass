@@ -13,8 +13,8 @@ export default function FloatingWhatsApp() {
   ];
 
   const handleSend = (textToSend) => {
-    const query = encodeURIComponent(textToSend || message || 'Hello Cerebral Compass, I need career counselling.');
-    window.open(`https://wa.me/919876543210?text=${query}`, '_blank');
+    const query = encodeURIComponent(textToSend || message || 'Hello Cerebral Compass Pvt Ltd, I need career counselling.');
+    window.open(`https://wa.me/916204934005?text=${query}`, '_blank');
     setIsOpen(false);
     setMessage('');
   };
@@ -47,7 +47,6 @@ export default function FloatingWhatsApp() {
             </div>
             <button
               onClick={() => {
-                
                 setIsOpen(false);
               }}
               className="text-slate-400 hover:text-slate-700 p-1 rounded-lg hover:bg-slate-100"
@@ -58,7 +57,7 @@ export default function FloatingWhatsApp() {
 
           <div className="py-3 space-y-2">
             <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed font-normal">
-              👋 Welcome to <strong className="text-slate-900 font-bold">Cerebral Compass</strong>! How can our senior admission directors guide your journey today?
+              👋 Welcome to <strong className="text-slate-900 font-bold">Cerebral Compass Pvt Ltd</strong>! How can our senior admission directors guide your journey today?
             </div>
 
             <div className="space-y-1.5 pt-1">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { submitApplicationApi, uploadDocumentApi } from '../services/api';
 import confetti from 'canvas-confetti';
 import {
@@ -498,7 +499,7 @@ export default function ApplicationFormPage({
               key: razorpayKey,
               amount: orderAmountPaise,
               currency: 'INR',
-              name: 'Cerebral Compass Educational Advisors',
+              name: 'Cerebral Compass Pvt Ltd',
               description: `Admission Counselling Dossier Processing — ${formData.personal.studentName}`,
               image: '/logo.png',
               handler: function (response) {
@@ -672,7 +673,7 @@ export default function ApplicationFormPage({
               </button>
 
               <a
-                href={`https://wa.me/919876543210?text=Hello%20Cerebral%20Compass,%20I%20have%20submitted%20Application%20${submittedData.id}%20with%20payment%20ID%20${submittedData.transactionId}.`}
+                href={`https://wa.me/916204934005?text=Hello%20Cerebral%20Compass,%20I%20have%20submitted%20Application%20${submittedData.id}%20with%20payment%20ID%20${submittedData.transactionId}.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
@@ -1763,6 +1764,9 @@ export default function ApplicationFormPage({
           </div>
         </div>
       )}
+
+      {/* Institutional Accreditations, Legal Compliance & Certificates */}
+      <InstitutionalCertificatesSection />
     </div>
   );
 }

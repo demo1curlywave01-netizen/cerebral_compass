@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { siteData } from '../data/siteData';
 import {
   Stethoscope,
@@ -199,6 +200,9 @@ export default function CoursesServicesPage({ onNavigate, onApplyWithCourse }) {
           </div>
         </div>
       </section>
+
+      {/* Institutional Certificates & Trust Section */}
+      <InstitutionalCertificatesSection />
 
 
 

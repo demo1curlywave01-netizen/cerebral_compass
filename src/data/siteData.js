@@ -1,13 +1,13 @@
 export const siteData = {
   brand: {
-    name: 'Cerebral Compass',
+    name: 'Cerebral Compass Pvt Ltd',
     tagline: 'Your Career. Your Direction. Your Future.',
     subtagline: 'Premier Educational Consultancy for Medical, Engineering, Management, UG/PG and Global Universities.',
-    phone: '+91 98765 43210',
-    whatsapp: '+919876543210',
-    email: 'admissions@cerebralcompass.com',
-    address: '402-404, Zenith Cyber Park, Near Tech Boulevard, Sector 62, Noida, NCR, India',
-    hours: 'Mon - Sat: 9:30 AM - 7:30 PM IST',
+    phone: '+91 77798 20944',
+    whatsapp: '+916204934005',
+    email: 'thecerebralcompass@gmail.com',
+    address: 'Muzaffarpur, Bihar - 842002',
+    hours: 'Mon - Sat: 10:00 AM - 6:00 PM IST',
   },
 
   domains: [
@@ -153,63 +153,288 @@ export const siteData = {
     }
   ],
 
+  // Categorized stream-wise pricing packages as requested:
+  streamPlans: {
+    mbbs: {
+      streamTitle: 'MBBS / Medical Counselling Plans',
+      tagline: 'NEET UG & PG Specialized Advisory for Govt, Private, Deemed & Abroad Seats',
+      plans: [
+        {
+          id: 'mbbs-govt',
+          name: 'Govt Counselling Plan',
+          category: 'MBBS Plan',
+          price: '₹40,000',
+          tax: '+ GST',
+          description: 'Comprehensive guidance for All India Quota (MCC 15%) & State Quota (85%) Government Medical Colleges.',
+          features: [
+            'All India Quota (MCC) + State 85% Quota Choice Filling Sheet',
+            'Historical Category & AIR Closing Rank Predictive Mapping',
+            'Service Bond Policy, Rural Postings & Stipend Audit',
+            'Pre-verification of Domicile, Caste & Medical Fitness Documents',
+            'Dedicated Medical Admission Counsellor Support',
+            'Round 1, Round 2 & Mop-Up Strategy'
+          ],
+          popular: false,
+          badge: 'Government Seats'
+        },
+        {
+          id: 'mbbs-private',
+          name: 'Private Counselling Plan',
+          category: 'MBBS Plan',
+          price: '₹69,999',
+          tax: '+ GST',
+          description: 'Specialized counselling for Private Medical Colleges & Open States across India.',
+          features: [
+            'Multi-State Open Private Portals (Karnataka, UP, Bihar, Haryana, etc.)',
+            'Deemed Universities Seat Allocation (KMC, DY Patil, Hamdard, etc.)',
+            'Hidden College Fee, Bank Guarantee & Hostel Expense Audit',
+            'High-Accuracy Sequenced Choice Preference Sheet',
+            'Priority WhatsApp & Calling Support with Senior Counsellor',
+            'Fast-track Education Loan Sanction Assistance'
+          ],
+          popular: true,
+          badge: 'Most Popular'
+        },
+        {
+          id: 'mbbs-mgmt',
+          name: 'Management Counselling Plan',
+          category: 'MBBS Plan',
+          price: '₹1,00,000',
+          tax: '+ GST',
+          description: 'Institutional, Management & NRI Quota seat allocation with director-level guidance.',
+          features: [
+            'Management & NRI Sponsored Quota Seat Matrix Strategy',
+            'Direct Regulatory Liaison with Deemed Medical Authorities',
+            'Stray Vacancy & Extended Round Spot Advisory',
+            'Senior Admissions Director 1-on-1 Personal Availability',
+            'Physical Campus Reporting Escort & Checklist Verification',
+            '100% Transparent, Merit-Aligned Process'
+          ],
+          popular: false,
+          badge: 'Management Quota'
+        },
+        {
+          id: 'mbbs-abroad',
+          name: 'MBBS Abroad Counselling Plan',
+          category: 'MBBS Plan',
+          price: '₹1,25,000',
+          tax: '+ GST',
+          description: 'NMC & WHO Gazette-compliant foreign medical seats with complete visa & travel onboarding.',
+          features: [
+            '100% NMC Gazette 2021 Compliant Universities (Georgia, Russia, Uzbekistan, etc.)',
+            'University Direct Application & Official Ministry Offer Letter',
+            'Student Visa Filing, Apostille & Embassy Legalization Guidance',
+            'Forex Card, Currency Hedging & Air Ticket Booking Support',
+            'On-Campus Airport Pickup & Indian Mess Verification',
+            'NEXT / USMLE / FMGE Examination Roadmap Support'
+          ],
+          popular: false,
+          badge: 'Global Medical'
+        }
+      ]
+    },
+    btech: {
+      streamTitle: 'B.Tech / Engineering Admissions',
+      tagline: 'JoSAA, CSAB, Premier State & Top Private Technical Universities',
+      plans: [
+        {
+          id: 'btech-basic',
+          name: 'Basic Plan',
+          category: 'B.Tech Plan',
+          price: '₹2,999',
+          tax: '+ GST',
+          description: 'Essential percentile matching & curated preference sheet for JEE aspirants.',
+          features: [
+            'JEE Main Percentile Potential Assessment',
+            'Standard Choice Preference Locking Sheet',
+            'NIT, IIIT & GFTI Eligibility Report',
+            'Portal Timeline & Key Dates Alerts'
+          ],
+          popular: false,
+          badge: 'Starter'
+        },
+        {
+          id: 'btech-pro',
+          name: 'Pro Plan',
+          category: 'B.Tech Plan',
+          price: '₹8,999',
+          tax: '+ GST',
+          description: 'Comprehensive JoSAA + CSAB Special Round tactical choice filling and branch vs college optimization.',
+          features: [
+            'Full JoSAA 6-Round Strategic Guidance',
+            'CSAB Special Round Spot Counseling Strategy',
+            'State Engineering Portals (JAC Delhi, COMEDK, WBJEE)',
+            'Branch vs College Placement RoI Analytics (CSE/AI/Robotics)',
+            'WhatsApp Dedicated Counsellor Support'
+          ],
+          popular: false,
+          badge: 'Recommended'
+        },
+        {
+          id: 'btech-elite',
+          name: 'Elite Plan',
+          category: 'B.Tech Plan',
+          price: '₹50,000',
+          tax: '+ GST',
+          description: 'Premier personalized engineering pathway with Top Tier Deemed, BITS, VIT, Manipal, and State spot counselling.',
+          features: [
+            'Everything in Pro Plan',
+            'BITS Pilani, VIT, MIT Manipal, Thapar Special Application Support',
+            'Multi-State Simultaneous Counselling Tracking',
+            'Document Verification & Seat Float/Slide Advice',
+            'Lead Counsellor Direct Access',
+            'Fast-Track Education Loan Advisory'
+          ],
+          popular: false,
+          badge: 'Elite Tier'
+        },
+        {
+          id: 'btech-premium',
+          name: 'Premium Plan',
+          category: 'B.Tech Plan',
+          price: '₹69,999',
+          tax: '+ GST',
+          description: 'Complete white-glove engineering admissions from JEE Main/Adv to final campus onboarding and hostel verification.',
+          features: [
+            'End-to-End Executive Engineering Admission Mentorship',
+            'Institutional & Management Quota Priority Tracking',
+            'Unlimited Choice Locking Sheet Revisions',
+            '24/7 Priority Emergency Support during Portal Windows',
+            'Physical Reporting Checklist & Fee Waiver Consultation',
+            'Senior Admissions Director Personal Oversight'
+          ],
+          popular: true,
+          badge: 'Complete VIP'
+        }
+      ]
+    },
+    mba: {
+      streamTitle: 'MBA / Management Consultancy',
+      tagline: 'IIMs, Non-IIM Premier B-Schools, CAT, XAT, SNAP & Tier-1 Institutions',
+      plans: [
+        {
+          id: 'mba-basic',
+          name: 'Basic Plan',
+          category: 'MBA Plan',
+          price: '₹2,999',
+          tax: '+ GST',
+          description: 'Percentile-to-B-School shortlisting based on CAT / XAT / CMAT / MAT scores.',
+          features: [
+            'Comprehensive Cutoff & RoI Matrix Report',
+            'Tier-1, 2, 3 College Shortlisting List',
+            'Application Deadline Alert Calendar',
+            'Specialization Match (Marketing/Finance/HR/Ops)'
+          ],
+          popular: false,
+          badge: 'Basic Dossier'
+        },
+        {
+          id: 'mba-pro',
+          name: 'Pro Plan',
+          category: 'MBA Plan',
+          price: '₹69,999',
+          tax: '+ GST',
+          description: 'End-to-end executive MBA admission mentorship, GD-PI interview preparation, and direct admissions advisory.',
+          features: [
+            'Everything in Basic Plan',
+            '1-on-1 Mock GD / PI / WAT Preparation Sessions',
+            'SOP & Resume Profiling by IIM Alumni',
+            'Tier-1 Private B-School Application Assistance',
+            'Direct Interview Call Negotiation & Profile Evaluation',
+            'Full Season Admission Support till Final Offer Letter'
+          ],
+          popular: true,
+          badge: 'Complete Pro'
+        }
+      ]
+    },
+    abroad: {
+      streamTitle: 'Study Abroad (Global Admissions)',
+      tagline: 'USA, UK, Germany, Canada, Europe, Australia & NMC-Compliant Medical Abroad',
+      plans: [
+        {
+          id: 'abroad-custom',
+          name: 'Study Abroad Plan',
+          category: 'Study Abroad',
+          price: 'Based on Course & Country',
+          tax: 'Customized Retainer',
+          description: 'Customized advisory based on student destination country, target degree (STEM, Business, Medicine), and scholarship eligibility.',
+          features: [
+            'Destination Country Selection (USA, UK, Germany, Europe, Australia)',
+            'Public vs Private University Tuition Assessment',
+            'Scholarship & Assistantship Eligibility Audit',
+            'Statement of Purpose (SOP) & Letter of Recommendation (LOR) Drafting',
+            'IELTS / TOEFL / GRE / GMAT Waiver Guidance',
+            'Visa Filing, Mock Consulate Interview & Post-Arrival Settlement'
+          ],
+          popular: true,
+          badge: 'Tailored Pathway'
+        }
+      ]
+    }
+  },
+
+  // Legacy flat packages list for general views
   packages: [
     {
-      id: 'pkg-personal',
-      name: 'Personalised Counselling',
+      id: 'mbbs-govt',
+      name: 'MBBS - Govt Counselling Plan',
       popular: false,
-      price: '₹14,999',
-      originalPrice: '₹24,999',
-      description: 'Ideal for students seeking precision college shortlisting, cutoff prediction, and expert choice-filling strategy.',
+      price: '₹40,000',
+      tax: '+ GST',
+      description: 'Guidance for All India Quota (MCC 15%) & State Quota (85%) Govt Medical Colleges.',
       features: [
-        'Dedicated 1-on-1 Senior Educational Counsellor',
-        'Predictive Cutoff Analysis (All India & State Quotas)',
-        'Customized Choice Preference Locking Sheet',
-        'WhatsApp Support during Counselling Rounds',
-        'Fee Structure & Bond Policy Documentation',
-        'Education Loan Advisory'
+        'All India Quota (MCC) + State 85% Quota Choice Filling Sheet',
+        'Historical Category & Rank Cutoff Analysis',
+        'Service Bond Policy & Stipend Verification',
+        'Document & Domicile Scrutiny'
       ],
-      cta: 'Choose Personalised',
-      recommendedFor: 'NEET / JEE / CUET aspirants needing accurate choice filing'
+      recommendedFor: 'NEET UG Government Medical Seekers'
     },
     {
-      id: 'pkg-complete',
-      name: 'Complete Admission Assistance',
+      id: 'mbbs-private',
+      name: 'MBBS - Private Counselling Plan',
       popular: true,
-      price: '₹29,999',
-      originalPrice: '₹45,999',
-      description: 'End-to-end white-glove guidance from registration till campus reporting and final seat allocation.',
+      price: '₹69,999',
+      tax: '+ GST',
+      description: 'Open State & Deemed Medical Colleges counselling across India.',
       features: [
-        'Everything in Personalised Counselling',
-        'Dedicated Lead Counsellor + Documentation Officer',
-        'Real-time Multi-State & MCC/JoSAA Portal Filings',
-        'Mop-Up & Stray Vacancy Round Real-time Seat Tracking',
-        'Pre-Screening Document Verification & Legal Vetting',
-        '100% Loan Sanction Fast-Track with Bank Partners',
-        'Campus Physical Reporting Support & Checklist',
-        'Priority 24/7 Counsellor Helpline'
+        'Multi-State Open Private Portals & Deemed Universities',
+        'Fee Structure, Bank Guarantee & Surcharge Audits',
+        'High-Accuracy Priority Choice Lock Sheet',
+        'Fast-Track Education Loan Support'
       ],
-      cta: 'Pay & Start Counselling →',
-      recommendedFor: 'Families wanting guaranteed peace of mind and zero procedural errors'
+      recommendedFor: 'Private & Deemed Medical College Applicants'
     },
     {
-      id: 'pkg-global',
-      name: 'Global / Medical VIP Elite',
+      id: 'mbbs-mgmt',
+      name: 'MBBS - Management Counselling Plan',
       popular: false,
-      price: '₹49,999',
-      originalPrice: '₹75,000',
-      description: 'Comprehensive package for MBBS Abroad or Global Universities in USA, UK, Germany & Top Private Deemed Universities.',
+      price: '₹1,00,000',
+      tax: '+ GST',
+      description: 'Management & NRI Quota seat allocation with senior director oversight.',
       features: [
-        'Everything in Complete Admission Assistance',
-        'NMC / WHO Verified Medical University Seat Booking',
-        'University Direct Application & Offer Letter Generation',
-        'Apostille & Embassy Document Legalization Guidance',
-        'Visa File Preparation & Mock Embassy Interview',
-        'Forex Card, Currency Hedging & Flight Assistance',
-        'On-Campus Airport Pickup & Local Indian Food Mess Sync'
+        'Management & NRI Sponsored Seat Strategy',
+        'Stray Vacancy & Extended Round Spot Advisory',
+        'Director 1-on-1 Direct Support',
+        'Physical Campus Reporting Escort'
       ],
-      cta: 'Book VIP Guidance',
-      recommendedFor: 'Study Abroad and Deemed/NRI Quota applicants'
+      recommendedFor: 'Management & Institutional Quota Candidates'
+    },
+    {
+      id: 'mbbs-abroad',
+      name: 'MBBS Abroad Counselling Plan',
+      popular: false,
+      price: '₹1,25,000',
+      tax: '+ GST',
+      description: '100% NMC & WHO Gazette-compliant foreign medical seats.',
+      features: [
+        'NMC Gazette 2021 Compliant Universities',
+        'Direct Admission Offer Letter & Visa Filing',
+        'Forex, Flight & Airport Pickup',
+        'NEXT / USMLE Exam Coaching Roadmap'
+      ],
+      recommendedFor: 'MBBS Abroad Seekers'
     }
   ],
 

@@ -1,11 +1,26 @@
+import { saveApplicationRecord } from './supabaseClient';
+
 // API Client with automatic fallback to client-side persistence
 
 export const submitApplicationApi = async (formData) => {
+  const generatedId = `CC-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+  const appWithId = { id: generatedId, ...formData };
+
+  // Try saving to Supabase if configured
+  try {
+    const sbResult = await saveApplicationRecord(appWithId);
+    if (sbResult && sbResult.success) {
+      return sbResult;
+    }
+  } catch (sbErr) {
+    console.warn('Supabase save error:', sbErr);
+  }
+
   try {
     const res = await fetch('/api/applications', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(formData),
+      body: JSON.stringify(appWithId),
     });
     if (res.ok) {
       return await res.json();

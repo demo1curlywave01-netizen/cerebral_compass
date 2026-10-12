@@ -44,7 +44,7 @@ export default function Navbar({ activePage, setActivePage }) {
         >
           <img
             src="/logo.png"
-            alt="Cerebral Compass Logo"
+            alt="Cerebral Compass Pvt Ltd Logo"
             className="h-14 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-sm"
           />
         </button>
@@ -81,7 +81,7 @@ export default function Navbar({ activePage, setActivePage }) {
         <div className="hidden md:flex items-center gap-3">
           {/* Quick WhatsApp */}
           <a
-            href="https://wa.me/919876543210?text=Hello%20Cerebral%20Compass,%20I%20need%20expert%20guidance%20for%20admissions."
+            href="https://wa.me/916204934005?text=Hello%20Cerebral%20Compass,%20I%20need%20expert%20guidance%20for%20admissions."
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold transition-all shadow-sm"
@@ -143,7 +143,7 @@ export default function Navbar({ activePage, setActivePage }) {
 
           <div className="mt-6 pt-6 border-t border-slate-200 grid grid-cols-2 gap-3">
             <a
-              href="https://wa.me/919876543210"
+              href="https://wa.me/916204934005"
               target="_blank"
               rel="noopener noreferrer"
               className="flex items-center justify-center gap-2 p-3 rounded-xl bg-emerald-50 border border-emerald-300 text-emerald-700 text-xs font-bold"

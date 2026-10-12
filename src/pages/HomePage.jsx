@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import CompassHeroNew from '../components/CompassHeroNew';
 import DirectionFinder from '../components/DirectionFinder';
+import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { siteData } from '../data/siteData';
 import {
   Compass,
@@ -19,6 +20,13 @@ import {
   BadgePercent,
   MessageCircle,
   Users,
+  Building2,
+  FileText,
+  Download,
+  ExternalLink,
+  Scale,
+  Receipt,
+  BookmarkCheck,
 } from 'lucide-react';
 
 export default function HomePage({ onNavigate, onApplyWithCourse }) {
@@ -330,6 +338,11 @@ export default function HomePage({ onNavigate, onApplyWithCourse }) {
 
 
       {/* =========================================================================
+          GOVERNMENT ACCREDITATION, TRADEMARK & TRUST CERTIFICATES SECTION
+         ========================================================================= */}
+      <InstitutionalCertificatesSection />
+
+      {/* =========================================================================
           HIGH-CONVERTING WHATSAPP + CONSULTATION CTA BANNER
          ========================================================================= */}
       <section>
@@ -350,7 +363,7 @@ export default function HomePage({ onNavigate, onApplyWithCourse }) {
 
               <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
                 <a
-                  href="https://wa.me/919876543210?text=Hello%20Cerebral%20Compass,%20I%20would%20like%20a%20personal%20counselling%20consultation."
+                  href="https://wa.me/916204934005?text=Hello%20Cerebral%20Compass,%20I%20would%20like%20a%20personal%20counselling%20consultation."
                   target="_blank"
                   rel="noopener noreferrer"
                   className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-sm shadow-xl shadow-emerald-500/30 flex items-center justify-center gap-2.5 transition-all hover:scale-105 active:scale-95"

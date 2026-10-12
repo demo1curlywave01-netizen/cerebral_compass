@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { siteData } from '../data/siteData';
 import { sendContactInquiry } from '../services/api';
 import confetti from 'canvas-confetti';
@@ -80,7 +81,7 @@ export default function AboutContactPage() {
                   Every academic season across India and abroad, tens of thousands of meritorious students lose premier seats not due to lack of effort, but due to chaotic multi-portal counselling schedules, opaque seat-blocking rules, and ill-informed choice preference sheets.
                 </p>
                 <p>
-                  <strong className="text-slate-900 font-bold">Cerebral Compass</strong> was established with a singular directive: to substitute emotional speculation with statistical cutoff intelligence. Combining over a decade of regulatory counselling mastery with proprietary seat-matrix tracking algorithms, we protect student potential and guide families with uncompromised integrity.
+                  <strong className="text-slate-900 font-bold">Cerebral Compass Pvt Ltd</strong> was established with a singular directive: to substitute emotional speculation with statistical cutoff intelligence. Combining over a decade of regulatory counselling mastery with proprietary seat-matrix tracking algorithms, we protect student potential and guide families with uncompromised integrity.
                 </p>
               </div>
 
@@ -368,6 +369,9 @@ export default function AboutContactPage() {
           </div>
         </div>
       </section>
+
+      {/* Institutional Accreditations, Legal Compliance & Certificates */}
+      <InstitutionalCertificatesSection />
     </div>
   );
 }
