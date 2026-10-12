@@ -32,6 +32,7 @@ export default function AdminPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(
     sessionStorage.getItem('cerebral_admin_auth') === 'true'
   );
+  const [adminIdInput, setAdminIdInput] = useState('');
   const [adminKeyInput, setAdminKeyInput] = useState('');
   const [loginError, setLoginError] = useState('');
 
@@ -57,17 +58,18 @@ export default function AdminPage() {
   // Login handler
   const handleLogin = (e) => {
     e.preventDefault();
+    const id = adminIdInput.trim().toLowerCase();
     const key = adminKeyInput.trim();
-    if (
-      key === 'admin@cerebral2026' ||
-      key === 'admin123' ||
-      key === 'cerebral2026'
-    ) {
+
+    const validIds = ['admin', 'thecerebralcompass@gmail.com', 'admin@cerebralcompass.com', 'director'];
+    const validKeys = ['admin@cerebral2026', 'admin123', 'cerebral2026'];
+
+    if ((validIds.includes(id) || id.length > 0) && validKeys.includes(key)) {
       setIsAuthenticated(true);
       sessionStorage.setItem('cerebral_admin_auth', 'true');
       setLoginError('');
     } else {
-      setLoginError('Galat passkey! Default passkey: admin@cerebral2026');
+      setLoginError('Invalid ID or Password. Please try again.');
     }
   };
 
@@ -196,24 +198,38 @@ export default function AdminPage() {
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
               <label className="text-xs font-semibold text-slate-700 block mb-1">
-                Admin Password
+                Enter your ID
+              </label>
+              <input
+                type="text"
+                placeholder="Enter your ID"
+                value={adminIdInput}
+                onChange={(e) => setAdminIdInput(e.target.value)}
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-600 transition-colors"
+                autoFocus
+                required
+              />
+            </div>
+
+            <div>
+              <label className="text-xs font-semibold text-slate-700 block mb-1">
+                Password
               </label>
               <input
                 type="password"
-                placeholder="Password daliye (admin@cerebral2026)"
+                placeholder="Enter your password"
                 value={adminKeyInput}
                 onChange={(e) => setAdminKeyInput(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-600"
-                autoFocus
+                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-brand-600 transition-colors"
                 required
               />
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-colors shadow-md"
+              className="w-full py-3 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-sm transition-colors shadow-md flex items-center justify-center gap-2"
             >
-              Login Karein →
+              <span>Login</span>
             </button>
           </form>
         </div>
