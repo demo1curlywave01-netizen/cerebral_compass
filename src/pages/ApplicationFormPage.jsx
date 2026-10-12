@@ -489,7 +489,7 @@ export default function ApplicationFormPage({
 
     try {
       // Check if window.Razorpay script is present
-      const razorpayKey = 'rzp_test_cerebralcompass2026';
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_cerebralcompass2026';
       const orderAmountPaise = selectedFee * 100;
 
       const launchRazorpayPopup = () => {
