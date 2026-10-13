@@ -31,9 +31,11 @@ import {
   RefreshCw,
   LogOut,
   Eye,
+  EyeOff,
   Trash2,
   CheckCircle2,
   Lock,
+  ShieldCheck,
   ArrowRight,
   Globe,
   X,
@@ -43,10 +45,14 @@ import {
 
 export default function AdminPage({ onNavigate }) {
   const [isAuthenticated, setIsAuthenticated] = useState(
-    sessionStorage.getItem('cerebral_admin_auth') === 'true'
+    sessionStorage.getItem('cerebral_admin_auth') === 'true' ||
+    localStorage.getItem('cerebral_admin_auth') === 'true'
   );
-  const [adminIdInput, setAdminIdInput] = useState('admin');
-  const [adminKeyInput, setAdminKeyInput] = useState('admin123');
+  const [adminIdInput, setAdminIdInput] = useState('');
+  const [adminKeyInput, setAdminKeyInput] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
+  const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [loginError, setLoginError] = useState('');
 
   // Sidebar collapse toggle
@@ -79,11 +85,22 @@ export default function AdminPage({ onNavigate }) {
     const id = adminIdInput.trim().toLowerCase();
     const key = adminKeyInput.trim();
 
-    const validKeys = ['admin@cerebral2026', 'admin123', 'cerebral2026', 'compass@admin', 'admin'];
+    const validKeys = [
+      'admin@cerebral2026',
+      'admin123',
+      'cerebral2026',
+      'compass@admin',
+      'admin',
+    ];
 
-    if ((id.length > 0) && (validKeys.includes(key) || key.length >= 4)) {
+    if (id.length > 0 && (validKeys.includes(key) || key.length >= 4)) {
       setIsAuthenticated(true);
       sessionStorage.setItem('cerebral_admin_auth', 'true');
+      if (rememberMe) {
+        localStorage.setItem('cerebral_admin_auth', 'true');
+      } else {
+        localStorage.removeItem('cerebral_admin_auth');
+      }
       setLoginError('');
     } else {
       setLoginError('Invalid ID or Password. Please try again.');
@@ -93,6 +110,15 @@ export default function AdminPage({ onNavigate }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('cerebral_admin_auth');
+    localStorage.removeItem('cerebral_admin_auth');
+    setUserMenuOpen(false);
+  };
+
+  // Quick autofill demo credentials
+  const handleQuickDemoFill = () => {
+    setAdminIdInput('admin');
+    setAdminKeyInput('admin123');
+    setLoginError('');
   };
 
   // Load Data from Supabase / Backend
@@ -235,70 +261,127 @@ export default function AdminPage({ onNavigate }) {
   // =========================================================================
   if (!isAuthenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center px-4 bg-[#1a2332]">
-        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-2xl space-y-6">
+      <div className="min-h-screen flex items-center justify-center px-4 bg-[#141b28] relative overflow-hidden">
+        {/* Subtle decorative glow */}
+        <div className="absolute w-96 h-96 rounded-full bg-blue-600/10 blur-3xl pointer-events-none -top-10 -left-10" />
+        <div className="absolute w-96 h-96 rounded-full bg-indigo-600/10 blur-3xl pointer-events-none -bottom-10 -right-10" />
+
+        <div className="max-w-md w-full bg-white rounded-2xl p-8 shadow-2xl space-y-6 relative z-10 border border-slate-100">
           <div className="text-center space-y-2">
-            <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-lg">
-              <Zap className="w-7 h-7" />
+            <div className="w-14 h-14 rounded-2xl bg-blue-600 text-white flex items-center justify-center mx-auto shadow-lg shadow-blue-600/25">
+              <Zap className="w-7 h-7 fill-current" />
             </div>
-            <h1 className="text-2xl font-black text-slate-900 tracking-tight flex items-center justify-center gap-1.5">
-              <span>Spur</span>
-              <span className="text-xs px-2 py-0.5 rounded bg-blue-100 text-blue-800 font-bold">Admin</span>
-            </h1>
-            <p className="text-xs text-slate-500">
-              Cerebral Compass Executive Portal
+            <div className="flex items-center justify-center gap-2">
+              <h1 className="text-2xl font-black text-slate-900 tracking-tight">
+                Spur
+              </h1>
+              <span className="text-[11px] px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 font-bold uppercase tracking-wider">
+                Admin
+              </span>
+            </div>
+            <p className="text-xs text-slate-500 font-medium">
+              Cerebral Compass Executive & Management Portal
             </p>
           </div>
 
           {loginError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold">
-              {loginError}
+            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+              <span className="w-2 h-2 rounded-full bg-rose-500 shrink-0" />
+              <span>{loginError}</span>
             </div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-4">
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Enter your ID
+              <label className="text-xs font-bold text-slate-700 block mb-1.5">
+                Admin ID / Username
               </label>
-              <input
-                type="text"
-                placeholder="admin"
-                value={adminIdInput}
-                onChange={(e) => setAdminIdInput(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-blue-600 transition-colors"
-                autoFocus
-                required
-              />
+              <div className="relative">
+                <User className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="admin"
+                  value={adminIdInput}
+                  onChange={(e) => setAdminIdInput(e.target.value)}
+                  className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-800 placeholder-slate-400 font-medium"
+                  autoFocus
+                  required
+                />
+              </div>
             </div>
 
             <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Password
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="text-xs font-bold text-slate-700">
+                  Password / Security Key
+                </label>
+              </div>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showPassword ? 'text' : 'password'}
+                  placeholder="••••••••"
+                  value={adminKeyInput}
+                  onChange={(e) => setAdminKeyInput(e.target.value)}
+                  className="w-full pl-10 pr-11 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:border-blue-600 focus:ring-2 focus:ring-blue-500/20 transition-all text-slate-800 placeholder-slate-400 font-medium"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
+                  title={showPassword ? 'Hide password' : 'Show password'}
+                >
+                  {showPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Remember me & Demo Autofill Pill */}
+            <div className="flex items-center justify-between pt-1 text-xs">
+              <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded text-blue-600 border-slate-300 focus:ring-blue-500"
+                />
+                <span className="font-medium">Remember me</span>
               </label>
-              <input
-                type="password"
-                placeholder="••••••••"
-                value={adminKeyInput}
-                onChange={(e) => setAdminKeyInput(e.target.value)}
-                className="w-full px-4 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:border-blue-600 transition-colors"
-                required
-              />
+
+              <button
+                type="button"
+                onClick={handleQuickDemoFill}
+                className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold hover:underline"
+              >
+                Auto-fill Demo Key
+              </button>
             </div>
 
             <button
               type="submit"
-              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-colors shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2"
+              className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-sm transition-all shadow-lg shadow-blue-600/30 flex items-center justify-center gap-2 active:scale-[0.99]"
             >
-              <Lock className="w-4 h-4" />
+              <ShieldCheck className="w-4 h-4" />
               <span>Sign In to Dashboard</span>
             </button>
           </form>
 
+          {/* Helper box with credentials hint */}
+          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
+            <span className="text-[11px] text-slate-500 font-medium">
+              Demo Access: ID <span className="font-bold text-slate-700">admin</span> • Password <span className="font-bold text-slate-700">admin123</span>
+            </span>
+          </div>
+
           {onNavigate && (
             <button
               onClick={() => onNavigate('home')}
-              className="w-full text-center text-xs text-slate-500 hover:text-blue-600 font-semibold"
+              className="w-full text-center text-xs text-slate-500 hover:text-blue-600 font-semibold transition-colors"
             >
               ← Back to Main Website
             </button>
@@ -529,11 +612,81 @@ export default function AdminPage({ onNavigate }) {
               </button>
             </div>
 
-            {/* User Profile Avatar */}
-            <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-              <div className="w-8 h-8 rounded-full bg-slate-800 text-white flex items-center justify-center font-bold text-xs shadow-sm">
-                <User className="w-4 h-4" />
-              </div>
+            {/* User Profile Avatar with Interactive Dropdown */}
+            <div className="relative pl-2 border-l border-slate-200">
+              <button
+                onClick={() => setUserMenuOpen(!userMenuOpen)}
+                className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-slate-100 transition-colors group"
+                title="Account Settings & Logout"
+              >
+                <div className="w-8 h-8 rounded-full bg-slate-800 group-hover:bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-sm transition-colors">
+                  <User className="w-4 h-4" />
+                </div>
+                <div className="hidden sm:block text-left">
+                  <span className="block text-xs font-bold text-slate-700 leading-tight">Admin</span>
+                  <span className="block text-[10px] text-emerald-600 font-semibold">Online</span>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 group-hover:text-slate-600 transition-colors" />
+              </button>
+
+              {userMenuOpen && (
+                <>
+                  {/* Backdrop to close dropdown on outside click */}
+                  <div
+                    className="fixed inset-0 z-40"
+                    onClick={() => setUserMenuOpen(false)}
+                  />
+
+                  {/* Dropdown Menu */}
+                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-slate-100 py-2 z-50 animate-fadeIn">
+                    <div className="px-4 py-2.5 border-b border-slate-100">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
+                        <p className="text-xs font-bold text-slate-800">Cerebral Administrator</p>
+                      </div>
+                      <p className="text-[11px] text-slate-500 truncate">thecerebralcompass@gmail.com</p>
+                      <span className="inline-block mt-1 text-[10px] px-2 py-0.5 rounded bg-blue-50 text-blue-700 font-semibold font-mono">
+                        Super User Access
+                      </span>
+                    </div>
+
+                    <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setActiveTab('dashboard');
+                          setUserMenuOpen(false);
+                        }}
+                        className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                      >
+                        <LayoutDashboard className="w-3.5 h-3.5 text-slate-400" />
+                        <span>Dashboard</span>
+                      </button>
+                      {onNavigate && (
+                        <button
+                          onClick={() => {
+                            onNavigate('home');
+                            setUserMenuOpen(false);
+                          }}
+                          className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2.5 font-medium transition-colors"
+                        >
+                          <Globe className="w-3.5 h-3.5 text-slate-400" />
+                          <span>View Public Website</span>
+                        </button>
+                      )}
+                    </div>
+
+                    <div className="pt-1 border-t border-slate-100">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full text-left px-4 py-2.5 text-xs text-rose-600 hover:bg-rose-50 flex items-center gap-2.5 font-bold transition-colors"
+                      >
+                        <LogOut className="w-3.5 h-3.5 text-rose-600" />
+                        <span>Sign Out / Logout</span>
+                      </button>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         </header>
