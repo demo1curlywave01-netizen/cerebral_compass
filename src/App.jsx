@@ -88,6 +88,11 @@ export default function App() {
     setActivePage('packages');
   };
 
+  // Standalone full-viewport experience for admin console
+  if (activePage === 'admin') {
+    return <AdminPage onNavigate={setActivePage} />;
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex flex-col relative selection:bg-brand-500 selection:text-white">
       {/* Interactive Dynamic Animated Background (Particles + Fluid Aurora) */}
