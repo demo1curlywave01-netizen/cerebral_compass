@@ -224,37 +224,28 @@ export default function AdminPage({ onNavigate }) {
     { day: 'Friday', value: 2, max: 20 },
   ];
 
-  // Dynamic Recent Notifications Feed
-  const notificationsList = [
-    {
-      id: 1,
-      title: applications[0]?.personal?.studentName
-        ? `New registration: ${applications[0].personal.studentName}`
-        : 'New application received',
-      time: '2 mins ago',
-      type: 'user',
-    },
-    {
-      id: 2,
-      title: inquiries[0]?.name
-        ? `New inquiry from ${inquiries[0].name}`
-        : 'New student counselling query',
-      time: '1 hour ago',
-      type: 'lead',
-    },
-    {
-      id: 3,
-      title: 'Payment confirmed via Razorpay',
-      time: '3 hours ago',
-      type: 'payment',
-    },
-    {
-      id: 4,
-      title: 'Document verification completed',
-      time: '21 days ago',
-      type: 'comment',
-    },
-  ];
+  // Dynamic Recent Notifications Feed based strictly on live data
+  const notificationsList = [];
+  if (applications.length > 0) {
+    applications.slice(0, 3).forEach((app, i) => {
+      notificationsList.push({
+        id: `app-${app.id || i}`,
+        title: `New registration: ${app.personal?.studentName || 'Student'}`,
+        time: 'Recently',
+        type: 'user',
+      });
+    });
+  }
+  if (inquiries.length > 0) {
+    inquiries.slice(0, 2).forEach((inq, i) => {
+      notificationsList.push({
+        id: `inq-${inq.id || i}`,
+        title: `New inquiry from ${inq.name}`,
+        time: 'Recently',
+        type: 'lead',
+      });
+    });
+  }
 
   // =========================================================================
   // LOGIN SCREEN
@@ -813,21 +804,27 @@ export default function AdminPage({ onNavigate }) {
                     </div>
 
                     <div className="divide-y divide-slate-100 mt-2">
-                      {notificationsList.map((notif) => (
-                        <div key={notif.id} className="py-3 flex items-center justify-between gap-3 text-xs">
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
-                              <Box className="w-3.5 h-3.5" />
+                      {notificationsList.length === 0 ? (
+                        <div className="py-8 text-center text-slate-400 text-xs">
+                          No recent notifications. Real user submissions will appear here live.
+                        </div>
+                      ) : (
+                        notificationsList.map((notif) => (
+                          <div key={notif.id} className="py-3 flex items-center justify-between gap-3 text-xs">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-6 h-6 rounded-md bg-slate-100 text-slate-600 flex items-center justify-center shrink-0">
+                                <Box className="w-3.5 h-3.5" />
+                              </div>
+                              <span className="text-slate-700 font-medium truncate">
+                                {notif.title}
+                              </span>
                             </div>
-                            <span className="text-slate-700 font-medium truncate">
-                              {notif.title}
+                            <span className="text-[11px] text-slate-400 shrink-0 font-mono">
+                              {notif.time}
                             </span>
                           </div>
-                          <span className="text-[11px] text-slate-400 shrink-0 font-mono">
-                            {notif.time}
-                          </span>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </div>
 
@@ -870,43 +867,51 @@ export default function AdminPage({ onNavigate }) {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {applications.slice(0, 5).map((app) => (
-                        <tr key={app.id} className="hover:bg-slate-50 transition-colors">
-                          <td className="py-3">
-                            <strong className="text-slate-900 block font-semibold">
-                              {app.personal?.studentName}
-                            </strong>
-                            <span className="text-[11px] text-slate-400 font-mono">ID: {app.id}</span>
-                          </td>
-                          <td className="py-3 font-medium text-slate-700">
-                            {app.academic?.courseInterested}
-                          </td>
-                          <td className="py-3 font-mono text-slate-600">
-                            +91 {app.personal?.mobile}
-                          </td>
-                          <td className="py-3">
-                            <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${(app.paymentStatus || '').includes('Paid')
-                                  ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                                  : 'bg-amber-50 text-amber-700 border border-amber-200'
-                                }`}
-                            >
-                              {app.paymentStatus || 'Pending'}
-                            </span>
-                          </td>
-                          <td className="py-3 text-slate-600">
-                            {app.currentStage || 'Document Verification'}
-                          </td>
-                          <td className="py-3 text-right">
-                            <button
-                              onClick={() => setSelectedApp(app)}
-                              className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 font-semibold text-[11px] text-slate-700 transition-colors"
-                            >
-                              Details
-                            </button>
+                      {applications.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="py-8 text-center text-slate-400 text-xs">
+                            No applications submitted yet. Once a student applies, their details will appear here.
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        applications.slice(0, 5).map((app) => (
+                          <tr key={app.id} className="hover:bg-slate-50 transition-colors">
+                            <td className="py-3">
+                              <strong className="text-slate-900 block font-semibold">
+                                {app.personal?.studentName}
+                              </strong>
+                              <span className="text-[11px] text-slate-400 font-mono">ID: {app.id}</span>
+                            </td>
+                            <td className="py-3 font-medium text-slate-700">
+                              {app.academic?.courseInterested}
+                            </td>
+                            <td className="py-3 font-mono text-slate-600">
+                              +91 {app.personal?.mobile}
+                            </td>
+                            <td className="py-3">
+                              <span
+                                className={`px-2 py-0.5 rounded text-[10px] font-bold ${(app.paymentStatus || '').includes('Paid')
+                                    ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
+                                    : 'bg-amber-50 text-amber-700 border border-amber-200'
+                                  }`}
+                              >
+                                {app.paymentStatus || 'Pending'}
+                              </span>
+                            </td>
+                            <td className="py-3 text-slate-600">
+                              {app.currentStage || 'Document Verification'}
+                            </td>
+                            <td className="py-3 text-right">
+                              <button
+                                onClick={() => setSelectedApp(app)}
+                                className="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-blue-50 hover:text-blue-700 font-semibold text-[11px] text-slate-700 transition-colors"
+                              >
+                                Details
+                              </button>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

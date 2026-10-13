@@ -1,9 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseUrl =
+  import.meta.env.VITE_SUPABASE_URL ||
+  'https://dihswtyhpyejmxqmutza.supabase.co';
+
 const supabaseAnonKey =
   import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY ||
-  import.meta.env.VITE_SUPABASE_ANON_KEY;
+  import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  'sb_publishable_gnHbfgkwtkNBfXO1xMev1Q_3CiNL26B';
 
 export const isSupabaseConfigured = Boolean(
   supabaseUrl &&
@@ -56,146 +60,7 @@ export const fetchAllApplications = async () => {
     //
   }
 
-  const defaultApplications = [
-    {
-      id: 'CC-2026-89211',
-      submittedAt: new Date(Date.now() - 3600000 * 12).toISOString(),
-      status: 'Application Received ✓',
-      currentStage: 'Choice Filling Sheet Prepared',
-      paymentStatus: 'Paid & Confirmed ✓',
-      transactionId: 'pay_rzp_neet_89211',
-      paidAmount: '₹29,999',
-      packageSelected: 'Medical Complete Admission Assistance',
-      aadhaarVerified: true,
-      personal: {
-        studentName: 'Aarav Sharma',
-        parentName: 'Dr. Rajesh Sharma',
-        dob: '2006-04-12',
-        mobile: '9811234567',
-        whatsapp: '9811234567',
-        email: 'aarav.sharma@gmail.com',
-        aadhaar: '4589 1234 9876',
-        state: 'Delhi NCR',
-      },
-      academic: {
-        courseInterested: 'MBBS / Medical (NEET UG)',
-        entranceExam: 'NEET UG 2026',
-        rankScore: '642 / 720 (AIR 14,200)',
-        category: 'General / UR',
-        approximateBudget: 'Government Quota / Private State Quota',
-      },
-      counsellor: {
-        name: 'Dr. Vikram Sethi',
-        title: 'Chief Medical & NEET Advisor',
-        phone: '+91 98765 43211',
-        email: 'dr.sethi@cerebralcompass.com',
-      },
-    },
-    {
-      id: 'CC-2026-74102',
-      submittedAt: new Date(Date.now() - 3600000 * 36).toISOString(),
-      status: 'Document Verification',
-      currentStage: 'Document Verification',
-      paymentStatus: 'Paid & Confirmed ✓',
-      transactionId: 'pay_rzp_jee_74102',
-      paidAmount: '₹24,999',
-      packageSelected: 'Engineering Complete Admission Assistance',
-      aadhaarVerified: true,
-      personal: {
-        studentName: 'Priya Verma',
-        parentName: 'Sunil Verma',
-        dob: '2006-08-20',
-        mobile: '9876543219',
-        whatsapp: '9876543219',
-        email: 'priya.verma@outlook.com',
-        aadhaar: '5678 9012 3456',
-        state: 'Uttar Pradesh',
-      },
-      academic: {
-        courseInterested: 'B.Tech / Engineering (JEE Main & Adv)',
-        entranceExam: 'JEE Mains 2026',
-        rankScore: '98.6 Percentile',
-        category: 'OBC-NCL',
-        approximateBudget: '₹12 Lakhs - ₹16 Lakhs',
-      },
-      counsellor: {
-        name: 'Er. Ananya Sengupta',
-        title: 'Head of Engineering Admissions',
-        phone: '+91 98765 43212',
-        email: 'ananya.s@cerebralcompass.com',
-      },
-    },
-    {
-      id: 'CC-2026-63045',
-      submittedAt: new Date(Date.now() - 3600000 * 60).toISOString(),
-      status: 'Round 1 Allotment Tracking',
-      currentStage: 'Round 1 Allotment Tracking',
-      paymentStatus: 'Paid & Confirmed ✓',
-      transactionId: 'pay_rzp_mba_63045',
-      paidAmount: '₹19,999',
-      packageSelected: 'Management Career Pathway',
-      aadhaarVerified: true,
-      personal: {
-        studentName: 'Rohan Kulkarni',
-        parentName: 'Anand Kulkarni',
-        dob: '2002-11-15',
-        mobile: '9822334455',
-        whatsapp: '9822334455',
-        email: 'rohan.k@gmail.com',
-        aadhaar: '7890 1234 5678',
-        state: 'Maharashtra',
-      },
-      academic: {
-        courseInterested: 'MBA / Management (CAT & XAT)',
-        entranceExam: 'CAT 2025',
-        rankScore: '96.4 Percentile',
-        category: 'General / UR',
-        approximateBudget: '₹18 Lakhs - ₹25 Lakhs',
-      },
-      counsellor: {
-        name: 'Rohan Varma',
-        title: 'Director of Management Admissions',
-        phone: '+91 98765 43213',
-        email: 'rohan.v@cerebralcompass.com',
-      },
-    },
-    {
-      id: 'CC-2026-52119',
-      submittedAt: new Date(Date.now() - 3600000 * 84).toISOString(),
-      status: 'Profile Review Call Scheduled',
-      currentStage: 'Document Verification',
-      paymentStatus: 'Paid & Confirmed ✓',
-      transactionId: 'pay_rzp_cutoff_52119',
-      paidAmount: '₹999',
-      packageSelected: 'Standard Cutoff & Choice Filing Dossier',
-      aadhaarVerified: true,
-      personal: {
-        studentName: 'Ananya Deshmukh',
-        parentName: 'Rajeev Deshmukh',
-        dob: '2005-02-18',
-        mobile: '9833445566',
-        whatsapp: '9833445566',
-        email: 'ananya.d@gmail.com',
-        aadhaar: '9012 3456 7890',
-        state: 'Karnataka',
-      },
-      academic: {
-        courseInterested: 'Law / CUET UG & CLAT',
-        entranceExam: 'CLAT 2026',
-        rankScore: 'AIR 2,450',
-        category: 'General / UR',
-        approximateBudget: '₹10 Lakhs',
-      },
-      counsellor: {
-        name: 'Meera Sen',
-        title: 'Senior UG & Global Pathways Advisor',
-        phone: '+91 98765 43214',
-        email: 'meera.s@cerebralcompass.com',
-      },
-    },
-  ];
-
-  return defaultApplications;
+  return [];
 };
 
 export const saveApplicationRecord = async (appData) => {
@@ -316,50 +181,7 @@ export const fetchAllInquiries = async () => {
     //
   }
 
-  // Realistic sample inquiries for immediate rich view
-  const defaultInquiries = [
-    {
-      id: 'INQ-1718012001',
-      name: 'Vikrant Singh',
-      phone: '9899112233',
-      email: 'vikrant.s@gmail.com',
-      stream: 'MBBS (NEET UG AIQ vs State)',
-      message: 'Need help with UP State NEET UG Round 1 choice filling and cutoffs.',
-      status: 'New Lead',
-      created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
-    },
-    {
-      id: 'INQ-1718012002',
-      name: 'Sanya Malhotra',
-      phone: '9818884422',
-      email: 'sanya.m@yahoo.com',
-      stream: 'B.Tech CS Admissions',
-      message: 'Want to know best NIT / IIIT options for 97 percentile in JEE Main.',
-      status: 'Contacted',
-      created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
-    },
-    {
-      id: 'INQ-1718012003',
-      name: 'Aditya Oberoi',
-      phone: '9871122334',
-      email: 'aditya.o@gmail.com',
-      stream: 'MBA / Management (CAT)',
-      message: 'Looking for Tier-1 private MBA GD/PI prep and CAP rounds assistance.',
-      status: 'Converted',
-      created_at: new Date(Date.now() - 3600000 * 48).toISOString(),
-    },
-    {
-      id: 'INQ-1718012004',
-      name: 'Kavita Joshi',
-      phone: '9810998877',
-      email: 'kavita.j@outlook.com',
-      stream: 'Study Abroad (UK/Germany)',
-      message: 'MS in Data Science shortlist and visa document audit requirements.',
-      status: 'In Discussion',
-      created_at: new Date(Date.now() - 3600000 * 72).toISOString(),
-    },
-  ];
-  return defaultInquiries;
+  return [];
 };
 
 export const updateInquiryStatus = async (id, status) => {
@@ -417,58 +239,7 @@ export const fetchAllPayments = async (applications = []) => {
       created_at: a.submittedAt || new Date().toISOString(),
     }));
 
-  if (appPayments.length > 0) return appPayments;
-
-  return [
-    {
-      id: 'PAY-8921101',
-      application_id: 'CC-2026-89211',
-      student_name: 'Aarav Sharma',
-      package_name: 'Medical Complete Admission Assistance',
-      amount: 29999,
-      currency: 'INR',
-      payment_method: 'Razorpay NetBanking (HDFC)',
-      transaction_id: 'pay_rzp_live_8921101',
-      status: 'Completed',
-      created_at: new Date(Date.now() - 3600000 * 12).toISOString(),
-    },
-    {
-      id: 'PAY-7410202',
-      application_id: 'CC-2026-74102',
-      student_name: 'Priya Verma',
-      package_name: 'Engineering Complete Admission Assistance',
-      amount: 24999,
-      currency: 'INR',
-      payment_method: 'Razorpay UPI (Google Pay)',
-      transaction_id: 'pay_rzp_live_7410202',
-      status: 'Completed',
-      created_at: new Date(Date.now() - 3600000 * 36).toISOString(),
-    },
-    {
-      id: 'PAY-6304503',
-      application_id: 'CC-2026-63045',
-      student_name: 'Rohan Kulkarni',
-      package_name: 'Management Career Pathway',
-      amount: 19999,
-      currency: 'INR',
-      payment_method: 'Razorpay Cards (ICICI CC)',
-      transaction_id: 'pay_rzp_live_6304503',
-      status: 'Completed',
-      created_at: new Date(Date.now() - 3600000 * 60).toISOString(),
-    },
-    {
-      id: 'PAY-5211904',
-      application_id: 'CC-2026-52119',
-      student_name: 'Ananya Deshmukh',
-      package_name: 'Standard Cutoff & Choice Filing Dossier',
-      amount: 999,
-      currency: 'INR',
-      payment_method: 'Razorpay UPI (PhonePe)',
-      transaction_id: 'pay_rzp_live_5211904',
-      status: 'Completed',
-      created_at: new Date(Date.now() - 3600000 * 80).toISOString(),
-    },
-  ];
+  return appPayments;
 };
 
 // =========================================================================
