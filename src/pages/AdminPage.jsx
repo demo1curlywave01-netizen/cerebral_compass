@@ -212,7 +212,7 @@ export default function AdminPage({ onNavigate }) {
   const totalInqs = inquiries.length;
   const openInquiriesCount = inquiries.filter(
     (i) => !i.status || i.status === 'New Lead' || i.status === 'Pending'
-  ).length || Math.min(5, inquiries.length);
+  ).length;
   const totalRevenue = payments.reduce((acc, curr) => acc + (Number(curr.amount) || 0), 0);
 
   // Bar Chart Data (Weekly Application Activity matching Spur format)
@@ -372,11 +372,11 @@ export default function AdminPage({ onNavigate }) {
           </form>
 
           {/* Helper box with credentials hint */}
-          <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
+          {/* <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 text-center">
             <span className="text-[11px] text-slate-500 font-medium">
               Demo Access: ID <span className="font-bold text-slate-700">admin</span> • Password <span className="font-bold text-slate-700">admin123</span>
             </span>
-          </div>
+          </div> */}
 
           {onNavigate && (
             <button
@@ -400,9 +400,8 @@ export default function AdminPage({ onNavigate }) {
           LEFT SIDEBAR (Dark Navy Spur Theme)
          --------------------------------------------------------------------- */}
       <aside
-        className={`${
-          sidebarOpen ? 'w-64' : 'w-20'
-        } bg-[#192231] text-slate-300 transition-all duration-300 flex flex-col shrink-0 min-h-screen select-none`}
+        className={`${sidebarOpen ? 'w-64' : 'w-20'
+          } bg-[#192231] text-slate-300 transition-all duration-300 flex flex-col shrink-0 min-h-screen select-none`}
       >
         {/* Brand Logo Header */}
         <div className="h-16 flex items-center px-6 gap-3 border-b border-slate-800/80">
@@ -426,11 +425,10 @@ export default function AdminPage({ onNavigate }) {
           {/* 1. Dashboard */}
           <button
             onClick={() => setActiveTab('dashboard')}
-            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${
-              activeTab === 'dashboard'
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'dashboard'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <LayoutDashboard className="w-4 h-4 shrink-0" />
@@ -441,11 +439,10 @@ export default function AdminPage({ onNavigate }) {
           {/* 2. Charts / Analytics */}
           <button
             onClick={() => setActiveTab('charts')}
-            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${
-              activeTab === 'charts'
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'charts'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <BarChart2 className="w-4 h-4 shrink-0" />
@@ -457,11 +454,10 @@ export default function AdminPage({ onNavigate }) {
           {/* 3. Applications (Components style) */}
           <button
             onClick={() => setActiveTab('applications')}
-            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${
-              activeTab === 'applications'
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'applications'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <Box className="w-4 h-4 shrink-0" />
@@ -477,11 +473,10 @@ export default function AdminPage({ onNavigate }) {
           {/* 4. Leads / Inquiries (Layouts style) */}
           <button
             onClick={() => setActiveTab('inquiries')}
-            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${
-              activeTab === 'inquiries'
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'inquiries'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <FileText className="w-4 h-4 shrink-0" />
@@ -497,11 +492,10 @@ export default function AdminPage({ onNavigate }) {
           {/* 5. Payments (About / Revenue) */}
           <button
             onClick={() => setActiveTab('payments')}
-            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${
-              activeTab === 'payments'
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'payments'
                 ? 'bg-blue-600 text-white shadow-md'
                 : 'text-slate-300 hover:bg-slate-800 hover:text-white'
-            }`}
+              }`}
           >
             <div className="flex items-center gap-3">
               <CreditCard className="w-4 h-4 shrink-0" />
@@ -568,11 +562,10 @@ export default function AdminPage({ onNavigate }) {
           <div className="flex items-center gap-3 sm:gap-4">
             {/* Live Database status pill */}
             <div
-              className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${
-                isSupabaseConfigured
+              className={`hidden md:flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold border ${isSupabaseConfigured
                   ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
                   : 'bg-amber-50 text-amber-700 border-amber-200'
-              }`}
+                }`}
             >
               <Database className="w-3 h-3" />
               <span>{isSupabaseConfigured ? 'Supabase Live' : 'Local Sandbox'}</span>
@@ -704,8 +697,8 @@ export default function AdminPage({ onNavigate }) {
                 <div className="bg-[#2f7bf6] text-white rounded-xl p-6 shadow-md flex flex-col justify-between h-40 relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <span className="text-xl font-bold tracking-tight">Sign ups</span>
-                    <div className="text-4xl font-extrabold tracking-tight">
-                      {totalApps > 0 ? totalApps : '114'}
+                    <div className="text-4xl font-extrabold tracking-tight font-mono">
+                      {totalApps}
                     </div>
                   </div>
 
@@ -713,7 +706,7 @@ export default function AdminPage({ onNavigate }) {
                     <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                       <User className="w-4 h-4 fill-current" />
                     </div>
-                    <span>+25% from last month</span>
+                    <span>{totalApps > 0 ? '+25% from last month' : 'No signups yet'}</span>
                   </div>
                 </div>
 
@@ -721,10 +714,8 @@ export default function AdminPage({ onNavigate }) {
                 <div className="bg-[#10b981] text-white rounded-xl p-6 shadow-md flex flex-col justify-between h-40 relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <span className="text-xl font-bold tracking-tight">Revenue</span>
-                    <div className="text-3xl sm:text-4xl font-extrabold tracking-tight">
-                      {totalRevenue > 0
-                        ? `₹${totalRevenue.toLocaleString('en-IN')}`
-                        : '$25,541'}
+                    <div className="text-3xl sm:text-4xl font-extrabold tracking-tight font-mono">
+                      ₹{totalRevenue.toLocaleString('en-IN')}
                     </div>
                   </div>
 
@@ -732,7 +723,7 @@ export default function AdminPage({ onNavigate }) {
                     <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                       <ShoppingCart className="w-4 h-4 fill-current" />
                     </div>
-                    <span>+17.5% from last month</span>
+                    <span>{totalRevenue > 0 ? '+17.5% from last month' : '₹0 collected'}</span>
                   </div>
                 </div>
 
@@ -740,8 +731,8 @@ export default function AdminPage({ onNavigate }) {
                 <div className="bg-[#ef4444] text-white rounded-xl p-6 shadow-md flex flex-col justify-between h-40 relative overflow-hidden">
                   <div className="flex items-start justify-between">
                     <span className="text-xl font-bold tracking-tight">Open tickets</span>
-                    <div className="text-4xl font-extrabold tracking-tight">
-                      {openInquiriesCount > 0 ? openInquiriesCount : '5'}
+                    <div className="text-4xl font-extrabold tracking-tight font-mono">
+                      {openInquiriesCount}
                     </div>
                   </div>
 
@@ -749,7 +740,7 @@ export default function AdminPage({ onNavigate }) {
                     <div className="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
                       <Phone className="w-4 h-4 fill-current" />
                     </div>
-                    <span>Active queries</span>
+                    <span>{openInquiriesCount > 0 ? 'Active queries' : 'All resolved'}</span>
                   </div>
                 </div>
               </div>
@@ -895,11 +886,10 @@ export default function AdminPage({ onNavigate }) {
                           </td>
                           <td className="py-3">
                             <span
-                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                                (app.paymentStatus || '').includes('Paid')
+                              className={`px-2 py-0.5 rounded text-[10px] font-bold ${(app.paymentStatus || '').includes('Paid')
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : 'bg-amber-50 text-amber-700 border border-amber-200'
-                              }`}
+                                }`}
                             >
                               {app.paymentStatus || 'Pending'}
                             </span>
@@ -1064,11 +1054,10 @@ export default function AdminPage({ onNavigate }) {
 
                           <td className="p-4">
                             <span
-                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                                (app.paymentStatus || '').includes('Paid')
+                              className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${(app.paymentStatus || '').includes('Paid')
                                   ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                                   : 'bg-amber-50 text-amber-700 border border-amber-200'
-                              }`}
+                                }`}
                             >
                               {app.paymentStatus || 'Pending'}
                             </span>

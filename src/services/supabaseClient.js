@@ -395,13 +395,13 @@ export const fetchAllPayments = async (applications = []) => {
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (!error && data && data.length > 0) return data;
+      if (!error && data) return data;
     } catch (err) {
       console.warn('Supabase fetch payments error:', err);
     }
   }
 
-  // Derive and combine payments from confirmed applications + sample transactions
+  // Derive and combine payments from confirmed applications
   const appPayments = (applications || [])
     .filter((a) => (a.paymentStatus || '').includes('Paid'))
     .map((a) => ({
