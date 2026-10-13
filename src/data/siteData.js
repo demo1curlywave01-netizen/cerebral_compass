@@ -163,7 +163,7 @@ export const siteData = {
           id: 'mbbs-govt',
           name: 'Govt Counselling Plan',
           category: 'MBBS Plan',
-          price: '₹40,000',
+          price: '₹39,999',
           tax: '+ GST',
           description: 'Comprehensive guidance for All India Quota (MCC 15%) & State Quota (85%) Government Medical Colleges.',
           features: [
@@ -199,7 +199,7 @@ export const siteData = {
           id: 'mbbs-mgmt',
           name: 'Management Counselling Plan',
           category: 'MBBS Plan',
-          price: '₹1,00,000',
+          price: '₹99,999',
           tax: '+ GST',
           description: 'Institutional, Management & NRI Quota seat allocation with director-level guidance.',
           features: [
@@ -217,7 +217,7 @@ export const siteData = {
           id: 'mbbs-abroad',
           name: 'MBBS Abroad Counselling Plan',
           category: 'MBBS Plan',
-          price: '₹1,25,000',
+          price: '₹1,24,999',
           tax: '+ GST',
           description: 'NMC & WHO Gazette-compliant foreign medical seats with complete visa & travel onboarding.',
           features: [
@@ -274,7 +274,7 @@ export const siteData = {
           id: 'btech-elite',
           name: 'Elite Plan',
           category: 'B.Tech Plan',
-          price: '₹50,000',
+          price: '₹49,999',
           tax: '+ GST',
           description: 'Premier personalized engineering pathway with Top Tier Deemed, BITS, VIT, Manipal, and State spot counselling.',
           features: [

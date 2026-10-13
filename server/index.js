@@ -194,7 +194,7 @@ app.post('/api/payments/create-order', (req, res) => {
     orderId,
     amount: amount || 29999,
     currency: 'INR',
-    keyId: 'rzp_live_cerebralcompass2026',
+    keyId: process.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TnR7MmwIAXDS2G',
     packageId,
     customerName: studentName || 'Applicant',
   });

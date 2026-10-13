@@ -42,7 +42,9 @@ export default function ApplicationFormPage({
   const [aadhaarOtpError, setAadhaarOtpError] = useState('');
 
   // Selected Fee / Package Amount
-  const [selectedFee, setSelectedFee] = useState(999); // ₹999 Application & Dossier Processing Fee
+  const [selectedFee, setSelectedFee] = useState(999); // Default ₹999 Application & Dossier Processing Fee
+  const [packageFee, setPackageFee] = useState(null);
+  const [feeOption, setFeeOption] = useState('package'); // 'package' | 'dossier'
 
   // Form State across all steps
   const [formData, setFormData] = useState({
@@ -106,6 +108,17 @@ export default function ApplicationFormPage({
         ...prev,
         packageSelected: initialPackage,
       }));
+
+      // Extract numeric fee from initialPackage (e.g. "MBBS Plan: Govt Counselling Plan (₹39,999)")
+      const match = initialPackage.match(/₹([0-9,]+)/);
+      if (match && match[1]) {
+        const parsed = parseInt(match[1].replace(/,/g, ''), 10);
+        if (!isNaN(parsed) && parsed > 0) {
+          setPackageFee(parsed);
+          setSelectedFee(parsed);
+          setFeeOption('package');
+        }
+      }
     }
   }, [initialPackage]);
 
@@ -488,62 +501,94 @@ export default function ApplicationFormPage({
     setSubmitting(true);
 
     try {
-      // Check if window.Razorpay script is present
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_cerebralcompass2026';
-      const orderAmountPaise = selectedFee * 100;
+      // 1. Ensure Razorpay script is available
+      const ensureRazorpayScript = () => {
+        return new Promise((resolve, reject) => {
+          if (typeof window !== 'undefined' && window.Razorpay) {
+            resolve(true);
+            return;
+          }
+          const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
+          if (existing) {
+            existing.onload = () => resolve(true);
+            existing.onerror = () => reject(new Error('Razorpay script failed to load.'));
+            return;
+          }
+          const script = document.createElement('script');
+          script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+          script.async = true;
+          script.onload = () => resolve(true);
+          script.onerror = () => reject(new Error('Unable to connect to Razorpay Payment Gateway. Check internet connection.'));
+          document.body.appendChild(script);
+        });
+      };
+
+      await ensureRazorpayScript();
+
+      if (typeof window.Razorpay === 'undefined') {
+        throw new Error('Razorpay checkout module is not available. Please disable any ad-blockers and try again.');
+      }
+
+      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TnR7MmwIAXDS2G';
+      const orderAmountPaise = Math.round(Number(selectedFee) * 100);
 
       const launchRazorpayPopup = () => {
         return new Promise((resolve, reject) => {
-          if (typeof window.Razorpay !== 'undefined') {
-            const options = {
-              key: razorpayKey,
-              amount: orderAmountPaise,
-              currency: 'INR',
-              name: 'Cerebral Compass Pvt Ltd',
-              description: `Admission Counselling Dossier Processing — ${formData.personal.studentName}`,
-              image: '/logo.png',
-              handler: function (response) {
-                resolve({
-                  success: true,
-                  paymentId: response.razorpay_payment_id || `pay_${Date.now()}`,
-                  orderId: response.razorpay_order_id || `order_${Date.now()}`,
-                });
-              },
-              prefill: {
-                name: formData.personal.studentName,
-                email: formData.personal.email,
-                contact: `+91${formData.personal.mobile}`,
-              },
-              notes: {
-                course: formData.academic.courseInterested,
-                aadhaar: formData.personal.aadhaar,
-              },
-              theme: {
-                color: '#2b7ea4',
-              },
-              modal: {
-                ondismiss: function () {
-                  reject(new Error('Payment window closed by user.'));
-                },
-              },
-            };
-
-            const rzp = new window.Razorpay(options);
-            rzp.on('payment.failed', function (resp) {
-              reject(new Error(resp.error?.description || 'Payment failed.'));
-            });
-            rzp.open();
-          } else {
-            // Simulated gateway for local sandbox if Razorpay script is blocked
-            const simulatedPayId = `pay_sim_${Date.now()}`;
-            setTimeout(() => {
+          const options = {
+            key: razorpayKey,
+            amount: orderAmountPaise,
+            currency: 'INR',
+            name: 'Cerebral Compass Pvt Ltd',
+            description: `${formData.packageSelected || 'Admission Counselling'} — ${formData.personal.studentName}`,
+            image: '/logo.png',
+            handler: function (response) {
+              if (!response || !response.razorpay_payment_id) {
+                reject(new Error('Transaction could not be verified by bank.'));
+                return;
+              }
               resolve({
                 success: true,
-                paymentId: simulatedPayId,
-                orderId: `order_sim_${Date.now()}`,
+                paymentId: response.razorpay_payment_id,
+                orderId: response.razorpay_order_id || `order_${Date.now()}`,
+                signature: response.razorpay_signature || '',
               });
-            }, 1200);
-          }
+            },
+            prefill: {
+              name: formData.personal.studentName,
+              email: formData.personal.email,
+              contact: formData.personal.mobile ? (formData.personal.mobile.startsWith('+91') ? formData.personal.mobile : `+91${formData.personal.mobile}`) : '',
+            },
+            notes: {
+              student_name: formData.personal.studentName,
+              parent_name: formData.personal.parentName || 'N/A',
+              student_mobile: formData.personal.mobile,
+              student_email: formData.personal.email,
+              course: formData.academic.courseInterested,
+              package_selected: formData.packageSelected,
+              amount_inr: `₹${selectedFee.toLocaleString('en-IN')}`,
+              fee_type: selectedFee > 999 ? 'Full Package Fee' : 'Dossier Registration Fee',
+              aadhaar_last4: formData.personal.aadhaar ? formData.personal.aadhaar.slice(-4) : '',
+            },
+            theme: {
+              color: '#2b7ea4',
+            },
+            modal: {
+              backdropclose: false,
+              escape: false,
+              handleback: true,
+              ondismiss: function () {
+                reject(new Error('Payment window closed. No money was deducted. If deducted, it will auto-refund within 24-48 hours.'));
+              },
+            },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.on('payment.failed', function (resp) {
+            console.error('Razorpay payment failed:', resp.error);
+            const errDescription = resp.error?.description || resp.error?.reason || 'Transaction declined by bank.';
+            reject(new Error(`Bank Payment Failed: ${errDescription}`));
+          });
+          rzp.open();
         });
       };
 
@@ -1540,6 +1585,77 @@ export default function ApplicationFormPage({
                 </div>
               </div>
 
+              {/* Fee Selection Toggle (When a Package is selected) */}
+              {packageFee && (
+                <div className="space-y-3">
+                  <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 block">
+                    Select Payment Tier for {formData.packageSelected}
+                  </span>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                    {/* Option 1: Full Package Fee */}
+                    <div
+                      onClick={() => {
+                        setSelectedFee(packageFee);
+                        setFeeOption('package');
+                      }}
+                      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                        feeOption === 'package'
+                          ? 'border-brand-600 bg-sky-50/60 shadow-md ring-2 ring-brand-500/20'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-brand-700">
+                          Complete Package Fee
+                        </span>
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          feeOption === 'package' ? 'border-brand-600 bg-brand-600' : 'border-slate-300'
+                        }`}>
+                          {feeOption === 'package' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-2xl font-display font-black text-slate-900">
+                        ₹{packageFee.toLocaleString('en-IN')}{' '}
+                        <span className="text-xs font-mono font-bold text-coral-600">+ GST</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                        Full round-by-round personalized strategy, predictive closing ranks, and direct counsellor access.
+                      </p>
+                    </div>
+
+                    {/* Option 2: Token Dossier Fee */}
+                    <div
+                      onClick={() => {
+                        setSelectedFee(999);
+                        setFeeOption('dossier');
+                      }}
+                      className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
+                        feeOption === 'dossier'
+                          ? 'border-brand-600 bg-sky-50/60 shadow-md ring-2 ring-brand-500/20'
+                          : 'border-slate-200 bg-white hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700">
+                          Provisional Dossier Token
+                        </span>
+                        <div className={`w-4 h-4 rounded-full border flex items-center justify-center ${
+                          feeOption === 'dossier' ? 'border-brand-600 bg-brand-600' : 'border-slate-300'
+                        }`}>
+                          {feeOption === 'dossier' && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                        </div>
+                      </div>
+                      <div className="mt-2 text-2xl font-display font-black text-slate-900">
+                        ₹999 <span className="text-xs font-mono font-bold text-slate-500">(Token)</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 mt-1 leading-snug">
+                        Document pre-screening & slot reservation. Remaining package fee balance payable during choice locking.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Razorpay Payment Box */}
               <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-5 border border-sky-800/40">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
@@ -1551,12 +1667,14 @@ export default function ApplicationFormPage({
                       </span>
                     </div>
                     <h3 className="font-display font-extrabold text-xl text-white mt-1">
-                      Counselling Registration & Processing Fee
+                      {feeOption === 'package' && packageFee
+                        ? `${formData.packageSelected} Payment`
+                        : 'Counselling Registration & Processing Fee'}
                     </h3>
                   </div>
 
-                  <div className="text-right sm:text-right">
-                    <span className="text-xs font-mono text-slate-300 block">Payable Amount</span>
+                  <div className="text-left sm:text-right">
+                    <span className="text-xs font-mono text-slate-300 block">Total Payable Now</span>
                     <span className="text-3xl font-display font-black text-emerald-400">
                       ₹{selectedFee.toLocaleString('en-IN')}
                     </span>
@@ -1574,13 +1692,23 @@ export default function ApplicationFormPage({
                   </div>
                   <div className="flex items-center gap-2">
                     <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Supports UPI (GPay/PhonePe), Cards & NetBanking</span>
+                    <span>Supports UPI, NetBanking (50+ Banks) & Cards</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <Lock className="w-4 h-4 text-sky-400 shrink-0" />
-                    <span>256-Bit SSL Encrypted by Razorpay</span>
+                    <span>256-Bit SSL Encrypted by Razorpay Gateway</span>
                   </div>
                 </div>
+
+                {/* High Value Transaction Advisory Notice */}
+                {selectedFee >= 25000 && (
+                  <div className="p-3 rounded-xl bg-sky-900/60 border border-sky-700/50 text-[11px] text-sky-200 flex items-start gap-2">
+                    <span className="text-base shrink-0">💡</span>
+                    <span>
+                      <strong>High-Value Transaction Advisory:</strong> For amounts above ₹25,000, if your daily bank UPI limit is reached, please select <strong>Net Banking</strong> (HDFC, SBI, ICICI, Axis, etc.) or <strong>Debit / Credit Card</strong> inside Razorpay for guaranteed instant processing.
+                    </span>
+                  </div>
+                )}
               </div>
 
               {/* Declarations Checkboxes */}

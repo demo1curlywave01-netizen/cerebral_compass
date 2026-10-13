@@ -68,7 +68,7 @@ export default function InstitutionalCertificatesSection() {
 
             <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
               <a
-                href="/documents/SPICE + Part B_Approval Letter_AC6421451.pdf"
+                href="/documents/spice-approval-letter.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-700 hover:to-sky-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-brand-600/20 transition-all hover:scale-102"
@@ -77,7 +77,7 @@ export default function InstitutionalCertificatesSection() {
                 <span>View PDF</span>
               </a>
               <a
-                href="/documents/SPICE + Part B_Approval Letter_AC6421451.pdf"
+                href="/documents/spice-approval-letter.pdf"
                 download="Cerebral_Compass_Pvt_Ltd_SPICE_Plus_Approval.pdf"
                 className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors"
                 title="Download PDF"
@@ -125,7 +125,7 @@ export default function InstitutionalCertificatesSection() {
 
             <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
               <a
-                href="/documents/Cerebral Compass Career Counselling Contract.pdf"
+                href="/documents/career-counselling-contract.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md shadow-emerald-600/20 transition-all hover:scale-102"
@@ -134,7 +134,7 @@ export default function InstitutionalCertificatesSection() {
                 <span>View Contract</span>
               </a>
               <a
-                href="/documents/Cerebral Compass Career Counselling Contract.pdf"
+                href="/documents/career-counselling-contract.pdf"
                 download="Cerebral_Compass_Career_Counselling_Contract.pdf"
                 className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors"
                 title="Download Contract"
@@ -182,7 +182,7 @@ export default function InstitutionalCertificatesSection() {
 
             <div className="pt-4 border-t border-slate-100 flex items-center gap-2">
               <a
-                href="/documents/All Legal Pages.pdf"
+                href="/documents/all-legal-pages.pdf"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 py-3 px-4 rounded-xl bg-slate-900 hover:bg-black text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all hover:scale-102"
@@ -191,7 +191,7 @@ export default function InstitutionalCertificatesSection() {
                 <span>View Legal Pages</span>
               </a>
               <a
-                href="/documents/All Legal Pages.pdf"
+                href="/documents/all-legal-pages.pdf"
                 download="Cerebral_Compass_All_Legal_Pages.pdf"
                 className="p-3 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 hover:text-slate-900 transition-colors"
                 title="Download Legal Pages"
