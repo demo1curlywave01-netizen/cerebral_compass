@@ -34,13 +34,6 @@ export default function ApplicationFormPage({
   const [touchedFields, setTouchedFields] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
 
-  // Aadhaar Verification States
-  const [aadhaarVerified, setAadhaarVerified] = useState(false);
-  const [showAadhaarOtpModal, setShowAadhaarOtpModal] = useState(false);
-  const [aadhaarOtp, setAadhaarOtp] = useState('');
-  const [aadhaarVerifying, setAadhaarVerifying] = useState(false);
-  const [aadhaarOtpError, setAadhaarOtpError] = useState('');
-
   // Selected Fee / Package Amount
   const [selectedFee, setSelectedFee] = useState(999); // Default ₹999 Application & Dossier Processing Fee
   const [packageFee, setPackageFee] = useState(null);
@@ -203,10 +196,6 @@ export default function ApplicationFormPage({
       ...prev,
       personal: { ...prev.personal, aadhaar: formatted },
     }));
-    // If aadhaar changes, reset verification
-    if (aadhaarVerified) {
-      setAadhaarVerified(false);
-    }
   };
 
   const handlePersonalChange = (e) => {
@@ -228,48 +217,6 @@ export default function ApplicationFormPage({
       ...prev,
       preferences: { ...prev.preferences, [e.target.name]: e.target.value },
     }));
-  };
-
-  // Aadhaar Verification Trigger
-  const handleOpenAadhaarVerification = () => {
-    setErrorMsg('');
-    const clean = formData.personal.aadhaar.replace(/\D/g, '');
-    if (clean.length !== 12) {
-      setErrorMsg('Please enter a complete 12-digit Aadhaar number before verifying.');
-      return;
-    }
-    setAadhaarOtp('');
-    setAadhaarOtpError('');
-    setShowAadhaarOtpModal(true);
-  };
-
-  const handleVerifyAadhaarOtp = () => {
-    if (aadhaarOtp.trim() !== '6291' && aadhaarOtp.trim().length !== 4 && aadhaarOtp.trim().length !== 6) {
-      setAadhaarOtpError('Invalid OTP. Please enter the generated verification code (use 6291 for demo).');
-      return;
-    }
-
-    setAadhaarVerifying(true);
-    setTimeout(() => {
-      setAadhaarVerifying(false);
-      setAadhaarVerified(true);
-      setShowAadhaarOtpModal(false);
-      setErrorMsg('');
-
-      // Auto update ID proof document with Aadhaar if empty
-      const cleanAadhaar = formData.personal.aadhaar.replace(/\D/g, '');
-      const updatedDocs = [...formData.documents];
-      const idDocIdx = updatedDocs.findIndex((d) => d.type.includes('ID Proof'));
-      if (idDocIdx !== -1 && !updatedDocs[idDocIdx].name) {
-        updatedDocs[idDocIdx] = {
-          ...updatedDocs[idDocIdx],
-          name: `Aadhaar_Verified_${cleanAadhaar.slice(-4)}.pdf`,
-          size: '184.2 KB',
-          status: 'UIDAI Verified ✓',
-        };
-        setFormData((prev) => ({ ...prev, documents: updatedDocs }));
-      }
-    }, 900);
   };
 
   // Step 1 Validation Check
@@ -486,13 +433,7 @@ export default function ApplicationFormPage({
   const handleRazorpayPaymentAndSubmit = async () => {
     setErrorMsg('');
 
-    // 1. Strict Aadhaar Verification Guard
-    if (!aadhaarVerified) {
-      setErrorMsg('Aadhaar verification is required before form submission. Please verify your Aadhaar in Step 1 or click "Verify Aadhaar" below.');
-      return;
-    }
-
-    // 2. Declaration check
+    // Declaration check
     if (!formData.accuracyConfirmed || !formData.termsAccepted) {
       setErrorMsg('Please check both declaration boxes to confirm accuracy and accept terms.');
       return;
@@ -821,10 +762,10 @@ export default function ApplicationFormPage({
               <div className="border-b border-slate-100 pb-4">
                 <h2 className="text-xl font-display font-bold text-slate-900 flex items-center gap-2">
                   <User className="w-5 h-5 text-brand-600" />
-                  Step 1 — Candidate & Identity Verification
+                  Step 1 — Candidate & Identity Details
                 </h2>
                 <p className="text-xs text-slate-500 mt-1">
-                  All fields marked with (*) must be completed with 10-digit mobile numbers, valid email, and verified Aadhaar to proceed to Step 2.
+                  All fields marked with (*) must be completed with 10-digit mobile numbers, valid email, and 12-digit Aadhaar to proceed to Step 2.
                 </p>
               </div>
 
@@ -1014,77 +955,28 @@ export default function ApplicationFormPage({
                   )}
                 </div>
 
-                {/* 7. Aadhaar Number & Verification Action */}
-                <div className="sm:col-span-2 p-4 rounded-2xl bg-sky-50/60 border border-sky-200 space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div>
-                      <label className="text-xs font-mono text-slate-800 font-bold flex items-center gap-1.5">
-                        <ShieldCheck className="w-4 h-4 text-brand-600" />
-                        Aadhaar Number (12 Digits) *
-                      </label>
-                      <p className="text-[11px] text-slate-500">
-                        Format: XXXX XXXX XXXX (Submission requires verified UIDAI match)
-                      </p>
-                    </div>
-
-                    {aadhaarVerified ? (
-                      <span className="px-3 py-1 rounded-full bg-emerald-100 border border-emerald-300 text-emerald-800 font-mono text-xs font-bold flex items-center gap-1.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-600" /> Aadhaar Verified ✓
-                      </span>
-                    ) : (
-                      <span className="text-[11px] font-mono text-amber-700 bg-amber-100/80 px-2.5 py-0.5 rounded-md border border-amber-300 font-semibold">
-                        Verification Required
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
-                    <input
-                      type="text"
-                      name="aadhaar"
-                      maxLength={14} // 12 digits + 2 spaces
-                      placeholder="5482 1928 3401"
-                      value={formData.personal.aadhaar}
-                      onChange={handleAadhaarChange}
-                      className={`flex-1 px-4 py-2.5 rounded-xl bg-white border text-sm text-slate-900 font-mono tracking-widest focus:outline-none transition-colors ${
-                        aadhaarVerified
-                          ? 'border-emerald-300 bg-emerald-50/30'
-                          : touchedFields.aadhaar && !isValidAadhaar(formData.personal.aadhaar)
-                          ? 'border-rose-400'
-                          : 'border-slate-300 focus:border-brand-500'
-                      }`}
-                      required
-                    />
-
-                    <button
-                      type="button"
-                      onClick={handleOpenAadhaarVerification}
-                      disabled={!isValidAadhaar(formData.personal.aadhaar) || aadhaarVerified}
-                      className={`px-5 py-2.5 rounded-xl font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm ${
-                        aadhaarVerified
-                          ? 'bg-emerald-50 text-emerald-700 border border-emerald-300 cursor-default'
-                          : isValidAadhaar(formData.personal.aadhaar)
-                          ? 'bg-brand-600 hover:bg-brand-700 text-white shadow-brand-600/20 hover:scale-105 active:scale-95'
-                          : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      }`}
-                    >
-                      {aadhaarVerified ? (
-                        <>
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Verified</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShieldCheck className="w-4 h-4" />
-                          <span>Verify Aadhaar</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-
+                {/* 7. Aadhaar Number (12 Digits) */}
+                <div className="sm:col-span-2">
+                  <label className="text-xs font-mono text-slate-700 font-semibold block mb-1">
+                    Aadhaar Number (12 Digits) *
+                  </label>
+                  <input
+                    type="text"
+                    name="aadhaar"
+                    maxLength={14} // 12 digits + 2 spaces
+                    placeholder="5482 1928 3401"
+                    value={formData.personal.aadhaar}
+                    onChange={handleAadhaarChange}
+                    className={`w-full px-4 py-2.5 rounded-xl bg-slate-50 border text-sm text-slate-900 font-mono tracking-widest focus:outline-none transition-colors ${
+                      touchedFields.aadhaar && !isValidAadhaar(formData.personal.aadhaar)
+                        ? 'border-rose-400 focus:border-rose-500'
+                        : 'border-slate-200 focus:border-brand-500'
+                    }`}
+                    required
+                  />
                   {formData.personal.aadhaar.length > 0 && !isValidAadhaar(formData.personal.aadhaar) && (
-                    <span className="text-[11px] text-rose-500 block">
-                      Aadhaar must be exactly 12 numeric digits.
+                    <span className="text-[11px] text-rose-500 mt-1 block">
+                      Aadhaar must be exactly 12 numeric digits (e.g. 5482 1928 3401).
                     </span>
                   )}
                 </div>
@@ -1488,39 +1380,6 @@ export default function ApplicationFormPage({
                 </p>
               </div>
 
-              {/* Aadhaar Verification Banner Check */}
-              <div
-                className={`p-4 rounded-2xl border flex items-center justify-between gap-4 ${
-                  aadhaarVerified
-                    ? 'bg-emerald-50/80 border-emerald-200 text-emerald-800'
-                    : 'bg-amber-50 border-amber-200 text-amber-800'
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <ShieldCheck className={`w-6 h-6 ${aadhaarVerified ? 'text-emerald-600' : 'text-amber-600'}`} />
-                  <div>
-                    <span className="font-bold text-sm block">
-                      {aadhaarVerified ? 'Aadhaar Identity Verified ✓' : 'Aadhaar Verification Pending!'}
-                    </span>
-                    <span className="text-xs">
-                      {aadhaarVerified
-                        ? `Aadhaar ending in ${formData.personal.aadhaar.slice(-4)} has been authenticated against UIDAI standards.`
-                        : 'Submission is locked until Aadhaar number is verified.'}
-                    </span>
-                  </div>
-                </div>
-
-                {!aadhaarVerified && (
-                  <button
-                    type="button"
-                    onClick={handleOpenAadhaarVerification}
-                    className="px-4 py-2 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-xs shrink-0 shadow-sm transition-all"
-                  >
-                    Verify Now
-                  </button>
-                )}
-              </div>
-
               {/* Review summary cards */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
@@ -1535,10 +1394,7 @@ export default function ApplicationFormPage({
                   <p><strong className="text-slate-500">Calling Mobile:</strong> +91 {formData.personal.mobile}</p>
                   <p><strong className="text-slate-500">WhatsApp:</strong> +91 {formData.personal.whatsapp}</p>
                   <p><strong className="text-slate-500">Email:</strong> {formData.personal.email}</p>
-                  <p>
-                    <strong className="text-slate-500">Aadhaar:</strong> {formData.personal.aadhaar}{' '}
-                    {aadhaarVerified && <span className="text-emerald-600 font-bold">✓ (Verified)</span>}
-                  </p>
+                  <p><strong className="text-slate-500">Aadhaar:</strong> {formData.personal.aadhaar}</p>
                 </div>
 
                 <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-2 text-xs">
@@ -1765,12 +1621,10 @@ export default function ApplicationFormPage({
             ) : (
               <button
                 onClick={handleRazorpayPaymentAndSubmit}
-                disabled={submitting || !aadhaarVerified}
+                disabled={submitting}
                 className={`px-8 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center gap-2 transition-all ${
                   submitting
                     ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                    : !aadhaarVerified
-                    ? 'bg-slate-300 text-slate-500 cursor-not-allowed shadow-none'
                     : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
                 }`}
               >
@@ -1779,15 +1633,10 @@ export default function ApplicationFormPage({
                     <Loader2 className="w-4 h-4 animate-spin" />
                     <span>Processing Razorpay Checkout...</span>
                   </>
-                ) : !aadhaarVerified ? (
-                  <>
-                    <Lock className="w-4 h-4" />
-                    <span>Verify Aadhaar to Unlock Payment</span>
-                  </>
                 ) : (
                   <>
                     <CreditCard className="w-4 h-4" />
-                    <span>Pay ₹{selectedFee} with Razorpay & Submit</span>
+                    <span>Pay ₹{selectedFee.toLocaleString('en-IN')} with Razorpay & Submit</span>
                   </>
                 )}
               </button>
@@ -1795,103 +1644,6 @@ export default function ApplicationFormPage({
           </div>
         </div>
       </div>
-
-      {/* =========================================================================
-          AADHAAR OTP VERIFICATION MODAL
-         ========================================================================= */}
-      {showAadhaarOtpModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fadeIn">
-          <div className="max-w-md w-full bg-white border border-sky-100 rounded-3xl p-6 sm:p-8 space-y-6 text-slate-800 shadow-2xl">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-sky-50 border border-sky-200 flex items-center justify-center text-brand-700 font-bold">
-                  <ShieldCheck className="w-6 h-6" />
-                </div>
-                <div>
-                  <h3 className="font-display font-bold text-base text-slate-900">
-                    UIDAI Aadhaar Verification
-                  </h3>
-                  <span className="text-[11px] font-mono text-brand-700 font-semibold">
-                    Instant Security Authentication
-                  </span>
-                </div>
-              </div>
-              <button
-                onClick={() => setShowAadhaarOtpModal(false)}
-                className="text-slate-400 hover:text-slate-600 p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            <div className="space-y-3 text-xs text-slate-600">
-              <p>
-                An Aadhaar Authentication Code has been generated for Aadhaar number{' '}
-                <strong className="text-slate-900 font-mono">
-                  XXXX XXXX {formData.personal.aadhaar.replace(/\D/g, '').slice(-4)}
-                </strong>.
-              </p>
-
-              <div className="p-3.5 rounded-xl bg-sky-50 border border-sky-200 text-sky-900 text-xs flex items-center justify-between">
-                <span>Demo OTP: <strong>6291</strong></span>
-                <button
-                  type="button"
-                  onClick={() => setAadhaarOtp('6291')}
-                  className="px-2.5 py-1 rounded-md bg-white border border-sky-300 text-brand-700 font-bold hover:bg-sky-100 text-[11px]"
-                >
-                  Autofill 6291
-                </button>
-              </div>
-
-              <div>
-                <label className="font-mono text-xs font-bold text-slate-700 block mb-1">
-                  Enter 4-Digit Aadhaar OTP:
-                </label>
-                <input
-                  type="text"
-                  maxLength={6}
-                  placeholder="Enter 6291"
-                  value={aadhaarOtp}
-                  onChange={(e) => setAadhaarOtp(e.target.value.replace(/\D/g, ''))}
-                  className="w-full px-4 py-2.5 rounded-xl bg-slate-50 border border-slate-300 font-mono text-center tracking-widest text-lg font-bold text-slate-900 focus:outline-none focus:border-brand-500"
-                />
-              </div>
-
-              {aadhaarOtpError && (
-                <span className="text-xs text-rose-500 block font-semibold">{aadhaarOtpError}</span>
-              )}
-            </div>
-
-            <div className="flex items-center justify-end gap-3 pt-2 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowAadhaarOtpModal(false)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-xs font-semibold text-slate-700 hover:bg-slate-200"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleVerifyAadhaarOtp}
-                disabled={aadhaarVerifying || !aadhaarOtp}
-                className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-600/20 disabled:opacity-50"
-              >
-                {aadhaarVerifying ? (
-                  <>
-                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                    <span>Verifying with UIDAI...</span>
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Confirm & Link Aadhaar</span>
-                  </>
-                )}
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Institutional Accreditations, Legal Compliance & Certificates */}
       <InstitutionalCertificatesSection />
