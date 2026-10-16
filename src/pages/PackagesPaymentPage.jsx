@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { siteData } from '../data/siteData';
+import { calculateGstBreakdown } from '../utils/gstCalculator';
 import {
   CheckCircle2,
   ShieldCheck,
@@ -22,8 +23,13 @@ export default function PackagesPaymentPage({ onNavigate, onApplyWithPackage }) 
   const [activeStream, setActiveStream] = useState('mbbs');
 
   const handleSelectPackage = (pkg) => {
+    const gstInfo = calculateGstBreakdown(pkg.price);
     if (onApplyWithPackage) {
-      onApplyWithPackage(`${pkg.category}: ${pkg.name} (${pkg.price})`);
+      if (gstInfo) {
+        onApplyWithPackage(`${pkg.category}: ${pkg.name} (${gstInfo.formattedTotal})`);
+      } else {
+        onApplyWithPackage(`${pkg.category}: ${pkg.name} (${pkg.price})`);
+      }
     }
     onNavigate('application');
   };
@@ -151,14 +157,16 @@ export default function PackagesPaymentPage({ onNavigate, onApplyWithPackage }) 
                       <h3 className="font-display font-extrabold text-xl text-slate-900">
                         {pkg.name}
                       </h3>
-                      <div className="mt-3 flex items-baseline gap-1.5">
+
+                      <div className="mt-3 flex items-baseline gap-2">
                         <span className="text-3xl sm:text-4xl font-display font-black text-slate-900 tracking-tight">
                           {pkg.price}
                         </span>
-                        <span className="text-xs font-mono font-bold text-coral-600 bg-rose-50 px-2 py-0.5 rounded border border-rose-200">
-                          {pkg.tax}
+                        <span className="text-xs font-mono font-bold text-coral-600 bg-rose-50 px-2.5 py-1 rounded border border-rose-200">
+                          + 18% GST at checkout
                         </span>
                       </div>
+
                       <p className="text-xs text-slate-500 mt-2.5 leading-relaxed font-normal">
                         {pkg.description}
                       </p>
@@ -196,15 +204,24 @@ export default function PackagesPaymentPage({ onNavigate, onApplyWithPackage }) 
                       <span>Enroll in {pkg.name} →</span>
                     </button>
 
-                    <a
-                      href={`https://wa.me/916204934005?text=Namaste%20Cerebral%20Compass%20Pvt%20Ltd,%20I%20am%20interested%20in%20${encodeURIComponent(pkg.name)}%20(${encodeURIComponent(pkg.price)}%20${encodeURIComponent(pkg.tax)}).`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold font-mono border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
-                    >
-                      <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>Ask Counsellor on WhatsApp</span>
-                    </a>
+                    {(() => {
+                      const gstInfo = calculateGstBreakdown(pkg.price);
+                      const waQuery = gstInfo
+                        ? `Namaste Cerebral Compass Pvt Ltd, I am interested in ${pkg.name} (Package Price: ${gstInfo.formattedBase}, GST 18%: ${gstInfo.formattedGst}, Total Payable: ${gstInfo.formattedTotal}).`
+                        : `Namaste Cerebral Compass Pvt Ltd, I am interested in ${pkg.name} (${pkg.price} ${pkg.tax}).`;
+
+                      return (
+                        <a
+                          href={`https://wa.me/917779820944?text=${encodeURIComponent(waQuery)}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold font-mono border border-slate-200 transition-colors flex items-center justify-center gap-1.5"
+                        >
+                          <MessageCircle className="w-3.5 h-3.5 text-emerald-600" />
+                          <span>Ask Counsellor on WhatsApp</span>
+                        </a>
+                      );
+                    })()}
                   </div>
                 </div>
               );

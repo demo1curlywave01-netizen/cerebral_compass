@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
-import { submitApplicationApi, uploadDocumentApi } from '../services/api';
+import { submitApplicationApi, uploadDocumentApi, sendInvoiceEmailApi, getWhatsAppInvoiceUrl } from '../services/api';
+import { calculateGstBreakdown, parsePackageGst } from '../utils/gstCalculator';
+import { getClientNextReferenceId } from '../utils/referenceId';
 import confetti from 'canvas-confetti';
 import {
   User,
@@ -28,15 +30,17 @@ export default function ApplicationFormPage({
   onNavigate,
   onApplicationSuccess,
 }) {
+  const tokenGst = calculateGstBreakdown(999);
   const [currentStep, setCurrentStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [touchedFields, setTouchedFields] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
 
-  // Selected Fee / Package Amount
-  const [selectedFee, setSelectedFee] = useState(999); // Default ₹999 Application & Dossier Processing Fee
+  // Selected Fee / Package Amount (including 18% GST)
+  const [selectedFee, setSelectedFee] = useState(tokenGst ? tokenGst.totalPayable : 1178.82);
   const [packageFee, setPackageFee] = useState(null);
+  const [packageGstInfo, setPackageGstInfo] = useState(null);
   const [feeOption, setFeeOption] = useState('package'); // 'package' | 'dossier'
 
   // Form State across all steps
@@ -50,17 +54,17 @@ export default function ApplicationFormPage({
       email: '',
       aadhaar: '',
       address: '',
-      state: 'Delhi NCR',
+      state: '',
     },
     academic: {
       courseInterested: initialCourse ? initialCourse.toUpperCase() : 'MBBS',
       entranceExam: 'NEET UG',
       rankScore: '',
       category: 'General / UR',
-      tenthDetails: '92% (CBSE Board)',
-      twelfthDetails: '89% (PCMB)',
+      tenthDetails: '',
+      twelfthDetails: '',
       preferredStateCity: '',
-      approximateBudget: '₹15 Lakhs – ₹35 Lakhs',
+      approximateBudget: '',
     },
     preferences: {
       countryPreference: 'India Only',
@@ -102,15 +106,13 @@ export default function ApplicationFormPage({
         packageSelected: initialPackage,
       }));
 
-      // Extract numeric fee from initialPackage (e.g. "MBBS Plan: Govt Counselling Plan (₹39,999)")
-      const match = initialPackage.match(/₹([0-9,]+)/);
-      if (match && match[1]) {
-        const parsed = parseInt(match[1].replace(/,/g, ''), 10);
-        if (!isNaN(parsed) && parsed > 0) {
-          setPackageFee(parsed);
-          setSelectedFee(parsed);
-          setFeeOption('package');
-        }
+      // Calculate 18% GST Breakdown
+      const gstBreakdown = parsePackageGst(initialPackage);
+      if (gstBreakdown && gstBreakdown.totalPayable > 0) {
+        setPackageGstInfo(gstBreakdown);
+        setPackageFee(gstBreakdown.totalPayable);
+        setSelectedFee(gstBreakdown.totalPayable);
+        setFeeOption('package');
       }
     }
   }, [initialPackage]);
@@ -535,13 +537,18 @@ export default function ApplicationFormPage({
 
       const paymentResult = await launchRazorpayPopup();
 
+      const activeGst = feeOption === 'package' && packageGstInfo ? packageGstInfo : (tokenGst || calculateGstBreakdown(999));
+
       // Submit application with verified payment
       const finalPayload = {
         ...formData,
         paymentStatus: 'Paid & Confirmed ✓',
         transactionId: paymentResult.paymentId,
         paymentGateway: 'Razorpay',
-        paidAmount: `₹${selectedFee.toLocaleString('en-IN')}`,
+        basePackagePrice: activeGst.formattedBase,
+        gstAmount: activeGst.formattedGst,
+        gstRate: '18%',
+        paidAmount: activeGst.formattedTotal,
         aadhaarVerified: true,
       };
 
@@ -559,11 +566,28 @@ export default function ApplicationFormPage({
         personal: formData.personal,
         academic: formData.academic,
         transactionId: paymentResult.paymentId,
-        paidAmount: `₹${selectedFee.toLocaleString('en-IN')}`,
+        basePackagePrice: activeGst.formattedBase,
+        gstAmount: activeGst.formattedGst,
+        gstRate: '18%',
+        paidAmount: activeGst.formattedTotal,
         submittedAt: new Date().toISOString(),
       };
 
       setSubmittedData(finalAppRecord);
+
+      // Automatically dispatch invoice email with attached Legal Terms & Conditions PDF
+      sendInvoiceEmailApi({
+        appId: finalAppRecord.id,
+        studentName: formData.personal?.studentName,
+        mobile: formData.personal?.mobile,
+        recipientEmail: formData.personal?.email || 'thecerebralcompass@gmail.com',
+        course: formData.academic?.courseInterested,
+        basePackagePrice: activeGst.formattedBase,
+        gstAmount: activeGst.formattedGst,
+        gstRate: '18%',
+        paidAmount: activeGst.formattedTotal,
+        transactionId: paymentResult.paymentId,
+      }).catch((emailErr) => console.warn('Background invoice email trigger notice:', emailErr));
 
       if (onApplicationSuccess) {
         onApplicationSuccess(response.applicationId || response.application?.id);
@@ -575,6 +599,8 @@ export default function ApplicationFormPage({
       setSubmitting(false);
     }
   };
+
+
 
   const stepLabels = [
     { num: 1, title: 'Personal Details', icon: User },
@@ -613,7 +639,7 @@ export default function ApplicationFormPage({
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-200">
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase">Application Reference ID</span>
-                  <span className="text-brand-700 font-bold text-base">{submittedData.id || 'CC-2026-LIVE'}</span>
+                  <span className="text-brand-700 font-bold text-base">{submittedData.id || 'CC-0126'}</span>
                 </div>
                 <div>
                   <span className="text-slate-500 block text-[10px] uppercase">Razorpay Payment ID</span>
@@ -642,9 +668,32 @@ export default function ApplicationFormPage({
                 </div>
               </div>
 
-              <div className="pt-3 border-t border-slate-200 flex items-center justify-between text-xs">
-                <span className="text-slate-600">Total Fee Paid via Razorpay:</span>
-                <span className="font-bold text-slate-900 text-sm">{submittedData.paidAmount || '₹999'}</span>
+              <div className="pt-3 border-t border-slate-200 font-mono space-y-1.5 text-xs">
+                {submittedData.basePackagePrice && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>Package price:</span>
+                    <span className="font-semibold text-slate-900">{submittedData.basePackagePrice}</span>
+                  </div>
+                )}
+                {submittedData.gstAmount && (
+                  <div className="flex justify-between text-slate-600">
+                    <span>GST 18%:</span>
+                    <span className="font-semibold text-coral-600">+{submittedData.gstAmount}</span>
+                  </div>
+                )}
+                <div className="pt-1.5 border-t border-slate-200 flex items-center justify-between">
+                  <span className="text-slate-800 font-bold">Total Fee Paid via Razorpay:</span>
+                  <span className="font-bold text-emerald-700 text-sm">{submittedData.paidAmount}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notification alert banner */}
+            <div className="p-3.5 rounded-xl bg-blue-50 border border-blue-200 text-left text-xs text-blue-900 flex items-start gap-2.5">
+              <span className="text-base">📧</span>
+              <div>
+                <strong>Official Invoice Dispatched:</strong> Full text invoice summary and company's <strong>Legal Terms & Conditions PDF</strong> have been sent to{' '}
+                <span className="font-mono font-bold underline">{submittedData.personal?.email || 'thecerebralcompass@gmail.com'}</span>.
               </div>
             </div>
 
@@ -659,13 +708,13 @@ export default function ApplicationFormPage({
               </button>
 
               <a
-                href={`https://wa.me/916204934005?text=Hello%20Cerebral%20Compass,%20I%20have%20submitted%20Application%20${submittedData.id}%20with%20payment%20ID%20${submittedData.transactionId}.`}
+                href={getWhatsAppInvoiceUrl(submittedData, '917779820944')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
               >
                 <MessageCircle className="w-4 h-4 fill-current" />
-                <span>Connect with Counsellor on WhatsApp</span>
+                <span>Send Invoice via WhatsApp</span>
               </a>
 
               {onNavigate && (
@@ -1442,7 +1491,7 @@ export default function ApplicationFormPage({
               </div>
 
               {/* Fee Selection Toggle (When a Package is selected) */}
-              {packageFee && (
+              {packageGstInfo && (
                 <div className="space-y-3">
                   <span className="text-xs font-mono font-bold uppercase tracking-wider text-slate-700 block">
                     Select Payment Tier for {formData.packageSelected}
@@ -1451,7 +1500,7 @@ export default function ApplicationFormPage({
                     {/* Option 1: Full Package Fee */}
                     <div
                       onClick={() => {
-                        setSelectedFee(packageFee);
+                        setSelectedFee(packageGstInfo.totalPayable);
                         setFeeOption('package');
                       }}
                       className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -1471,8 +1520,10 @@ export default function ApplicationFormPage({
                         </div>
                       </div>
                       <div className="mt-2 text-2xl font-display font-black text-slate-900">
-                        ₹{packageFee.toLocaleString('en-IN')}{' '}
-                        <span className="text-xs font-mono font-bold text-coral-600">+ GST</span>
+                        {packageGstInfo.formattedTotal}{' '}
+                        <span className="text-[10px] font-mono font-bold text-emerald-800 bg-emerald-100 px-2 py-0.5 rounded-full border border-emerald-300">
+                          Incl. 18% GST
+                        </span>
                       </div>
                       <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                         Full round-by-round personalized strategy, predictive closing ranks, and direct counsellor access.
@@ -1482,7 +1533,7 @@ export default function ApplicationFormPage({
                     {/* Option 2: Token Dossier Fee */}
                     <div
                       onClick={() => {
-                        setSelectedFee(999);
+                        setSelectedFee(tokenGst ? tokenGst.totalPayable : 1178.82);
                         setFeeOption('dossier');
                       }}
                       className={`p-4 rounded-2xl border-2 cursor-pointer transition-all ${
@@ -1502,7 +1553,10 @@ export default function ApplicationFormPage({
                         </div>
                       </div>
                       <div className="mt-2 text-2xl font-display font-black text-slate-900">
-                        ₹999 <span className="text-xs font-mono font-bold text-slate-500">(Token)</span>
+                        {tokenGst ? tokenGst.formattedTotal : '₹1,178.82'}{' '}
+                        <span className="text-[10px] font-mono font-bold text-slate-600 bg-slate-100 px-2 py-0.5 rounded-full border border-slate-200">
+                          Token (Incl. 18% GST)
+                        </span>
                       </div>
                       <p className="text-[11px] text-slate-600 mt-1 leading-snug">
                         Document pre-screening & slot reservation. Remaining package fee balance payable during choice locking.
@@ -1512,30 +1566,53 @@ export default function ApplicationFormPage({
                 </div>
               )}
 
-              {/* Razorpay Payment Box */}
-              <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-5 border border-sky-800/40">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <CreditCard className="w-5 h-5 text-sky-400" />
-                      <span className="font-mono text-xs uppercase tracking-wider text-sky-300 font-bold">
-                        Official Razorpay Checkout
-                      </span>
-                    </div>
-                    <h3 className="font-display font-extrabold text-xl text-white mt-1">
-                      {feeOption === 'package' && packageFee
-                        ? `${formData.packageSelected} Payment`
-                        : 'Counselling Registration & Processing Fee'}
-                    </h3>
-                  </div>
+              {/* Razorpay Payment Box with Itemized GST Breakdown Table */}
+              {(() => {
+                const activeGst = feeOption === 'package' && packageGstInfo ? packageGstInfo : (tokenGst || calculateGstBreakdown(999));
+                return (
+                  <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-5 border border-sky-800/40">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <CreditCard className="w-5 h-5 text-sky-400" />
+                          <span className="font-mono text-xs uppercase tracking-wider text-sky-300 font-bold">
+                            Official Razorpay Checkout
+                          </span>
+                        </div>
+                        <h3 className="font-display font-extrabold text-xl text-white mt-1">
+                          {feeOption === 'package' && packageGstInfo
+                            ? `${formData.packageSelected} Payment`
+                            : 'Counselling Registration & Processing Fee'}
+                        </h3>
+                      </div>
 
-                  <div className="text-left sm:text-right">
-                    <span className="text-xs font-mono text-slate-300 block">Total Payable Now</span>
-                    <span className="text-3xl font-display font-black text-emerald-400">
-                      ₹{selectedFee.toLocaleString('en-IN')}
-                    </span>
-                  </div>
-                </div>
+                      <div className="text-left sm:text-right">
+                        <span className="text-xs font-mono text-slate-300 block">Total Payable Now</span>
+                        <span className="text-3xl font-display font-black text-emerald-400">
+                          {activeGst.formattedTotal}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Official Itemized GST Breakdown Table as requested */}
+                    <div className="bg-slate-950/80 border border-sky-800/60 rounded-2xl p-4 font-mono text-xs space-y-2 shadow-inner">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10 text-sky-300 font-bold uppercase text-[11px] tracking-wider">
+                        <span>Item</span>
+                        <span>Amount</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>Package price</span>
+                        <span className="font-semibold text-white">{activeGst.formattedBase}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>GST 18%</span>
+                        <span className="font-semibold text-coral-400">+{activeGst.formattedGst}</span>
+                      </div>
+                      <div className="pt-2 border-t border-white/15 flex items-center justify-between text-sm font-extrabold text-white">
+                        <span className="text-emerald-400">Total payable</span>
+                        <span className="text-emerald-400 text-base">{activeGst.formattedTotal}</span>
+                      </div>
+                    </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
                   <div className="flex items-center gap-2">
@@ -1566,6 +1643,8 @@ export default function ApplicationFormPage({
                   </div>
                 )}
               </div>
+            );
+          })()}
 
               {/* Declarations Checkboxes */}
               <div className="space-y-3 pt-2">
@@ -1619,27 +1698,39 @@ export default function ApplicationFormPage({
                 <ArrowRight className="w-4 h-4" />
               </button>
             ) : (
-              <button
-                onClick={handleRazorpayPaymentAndSubmit}
-                disabled={submitting}
-                className={`px-8 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center gap-2 transition-all ${
-                  submitting
-                    ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                    : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
-                }`}
-              >
-                {submitting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 animate-spin" />
-                    <span>Processing Razorpay Checkout...</span>
-                  </>
-                ) : (
-                  <>
-                    <CreditCard className="w-4 h-4" />
-                    <span>Pay ₹{selectedFee.toLocaleString('en-IN')} with Razorpay & Submit</span>
-                  </>
-                )}
-              </button>
+              <div className="flex flex-col sm:flex-row items-center gap-3">
+                <button
+                  type="button"
+                  onClick={handleSimulateTestPayment}
+                  disabled={submitting}
+                  className="w-full sm:w-auto px-5 py-3.5 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                >
+                  <Sparkles className="w-4 h-4 text-emerald-600" />
+                  <span>🧪 Simulate Payment & Send Invoice (Test)</span>
+                </button>
+
+                <button
+                  onClick={handleRazorpayPaymentAndSubmit}
+                  disabled={submitting}
+                  className={`w-full sm:w-auto px-7 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all ${
+                    submitting
+                      ? 'bg-slate-400 cursor-not-allowed opacity-75'
+                      : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
+                  }`}
+                >
+                  {submitting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      <span>Processing Razorpay Checkout...</span>
+                    </>
+                  ) : (
+                    <>
+                      <CreditCard className="w-4 h-4" />
+                      <span>Pay {typeof selectedFee === 'number' ? `₹${selectedFee.toLocaleString('en-IN')}` : selectedFee} with Razorpay</span>
+                    </>
+                  )}
+                </button>
+              </div>
             )}
           </div>
         </div>

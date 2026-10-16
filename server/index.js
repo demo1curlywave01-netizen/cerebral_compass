@@ -1,9 +1,17 @@
+import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
+import {
+  sendInvoiceEmail,
+  formatInvoiceTextMessage,
+  generateWhatsAppInvoiceUrl,
+  notificationConfig
+} from './services/notificationService.js';
+import { getNextApplicationId, peekNextApplicationId } from './services/referenceIdService.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -72,14 +80,19 @@ app.get('/api/health', (req, res) => {
   });
 });
 
+// Endpoint to peek next application ID
+app.get('/api/applications/next-id', (req, res) => {
+  res.json({ nextId: peekNextApplicationId() });
+});
+
 // 2. Multi-step Application Submission
 app.post('/api/applications', (req, res) => {
   try {
     const data = req.body;
     const apps = readApplications();
 
-    // Auto-generate official application ID
-    const appId = `CC-2026-${Math.floor(10000 + Math.random() * 90000)}`;
+    // Auto-generate official application ID (format: CC-<sno><YY>, e.g. CC-0126)
+    const appId = (data.id && /^CC-\d{3,}$/i.test(data.id)) ? data.id : getNextApplicationId();
 
     // Assign appropriate counsellor based on selected course
     let assignedCounsellor = {
@@ -213,6 +226,17 @@ app.post('/api/payments/verify', (req, res) => {
         target.stagesCompleted.push('Payment Confirmation');
       }
       saveApplications(apps);
+
+      // Asynchronously dispatch invoice email with attached legal terms PDF
+      sendInvoiceEmail({
+        ...target,
+        appId: target.id,
+        recipientEmail: target.personal?.email || notificationConfig.testEmail,
+      }).then((result) => {
+        console.log(`[Auto Invoice Email] Sent for ${target.id}:`, result.message);
+      }).catch((err) => {
+        console.error(`[Auto Invoice Email Error]:`, err);
+      });
     }
   }
 
@@ -222,6 +246,35 @@ app.post('/api/payments/verify', (req, res) => {
     transactionId: paymentId || `pay_${Date.now()}`,
     status: 'Captured',
   });
+});
+
+// 6. Direct Invoice & Notification Endpoints
+app.post('/api/notifications/send-invoice-email', async (req, res) => {
+  try {
+    const payload = req.body || {};
+    const result = await sendInvoiceEmail(payload);
+    res.json(result);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || 'Email dispatch failed' });
+  }
+});
+
+app.post('/api/notifications/get-whatsapp-url', (req, res) => {
+  try {
+    const payload = req.body || {};
+    const targetPhone = req.body.targetPhone || payload.personal?.whatsapp || payload.personal?.mobile || notificationConfig.officialWhatsapp;
+    const whatsappUrl = generateWhatsAppInvoiceUrl(payload, targetPhone);
+    const messageText = formatInvoiceTextMessage(payload);
+
+    res.json({
+      success: true,
+      whatsappUrl,
+      messageText,
+      targetPhone,
+    });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message || 'WhatsApp formatting failed' });
+  }
 });
 
 // 6. Contact & Inquiry Form

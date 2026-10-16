@@ -1,5 +1,161 @@
 [
   {
+    "id": "CC-0126",
+    "submittedAt": "2026-10-16T13:59:49.102Z",
+    "status": "Application Received & Verified ✓",
+    "currentStage": "Counsellor Choice Allocation",
+    "stagesCompleted": [
+      "Application Form",
+      "Document Verification",
+      "Payment Confirmation"
+    ],
+    "paymentStatus": "Paid & Confirmed ✓",
+    "transactionId": "pay_razorpay_1792159189102",
+    "paymentGateway": "Razorpay Verified",
+    "basePackagePrice": "₹69,999.00",
+    "gstAmount": "₹12,599.82",
+    "gstRate": "18%",
+    "paidAmount": "₹82,598.82",
+    "packageSelected": "MBBS Plan: Private Counselling Plan (₹82,598.82)",
+    "personal": {
+      "studentName": "Priya Verma",
+      "parentName": "Ramesh Verma",
+      "dob": "2005-08-15",
+      "mobile": "9876543210",
+      "whatsapp": "9876543210",
+      "email": "thecerebralcompass@gmail.com",
+      "aadhaar": "5432 1098 7654",
+      "address": "Sector 62, Noida, Uttar Pradesh",
+      "state": "Uttar Pradesh"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "AIR 14,250 (645 Marks)",
+      "category": "General / UR",
+      "tenthDetails": "94% (CBSE Board)",
+      "twelfthDetails": "91% (PCB - CBSE Board)",
+      "approximateBudget": "₹15 Lakhs – ₹35 Lakhs"
+    }
+  },
+  {
+    "id": "cc01102026",
+    "submittedAt": "2026-10-16T13:02:16.910Z",
+    "status": "Application Received & Verified ✓",
+    "currentStage": "Counsellor Choice Allocation",
+    "stagesCompleted": [
+      "Application Form",
+      "Document Verification",
+      "Payment Confirmation"
+    ],
+    "paymentStatus": "Paid & Confirmed ✓",
+    "transactionId": "pay_razorpay_1792155736910",
+    "paymentGateway": "Razorpay Verified",
+    "basePackagePrice": "₹69,999.00",
+    "gstAmount": "₹12,599.82",
+    "gstRate": "18%",
+    "paidAmount": "₹82,598.82",
+    "packageSelected": "MBBS Plan: Private Counselling Plan (₹82,598.82)",
+    "personal": {
+      "studentName": "Priya Verma",
+      "parentName": "Ramesh Verma",
+      "dob": "2005-08-15",
+      "mobile": "9876543210",
+      "whatsapp": "9876543210",
+      "email": "thecerebralcompass@gmail.com",
+      "aadhaar": "5432 1098 7654",
+      "address": "Sector 62, Noida, Uttar Pradesh",
+      "state": "Uttar Pradesh"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "AIR 14,250 (645 Marks)",
+      "category": "General / UR",
+      "tenthDetails": "94% (CBSE Board)",
+      "twelfthDetails": "91% (PCB - CBSE Board)",
+      "approximateBudget": "₹15 Lakhs – ₹35 Lakhs"
+    }
+  },
+  {
+    "id": "CC-2026-LIVE-60039",
+    "submittedAt": "2026-10-16T10:27:09.591Z",
+    "status": "Application Received & Verified ✓",
+    "currentStage": "Counsellor Choice Allocation",
+    "stagesCompleted": [
+      "Application Form",
+      "Document Verification",
+      "Payment Confirmation"
+    ],
+    "paymentStatus": "Paid & Confirmed ✓",
+    "transactionId": "pay_razorpay_1792146429593",
+    "paymentGateway": "Razorpay Verified",
+    "basePackagePrice": "₹69,999.00",
+    "gstAmount": "₹12,599.82",
+    "gstRate": "18%",
+    "paidAmount": "₹82,598.82",
+    "packageSelected": "MBBS Plan: Private Counselling Plan (₹82,598.82)",
+    "personal": {
+      "studentName": "Priya Verma",
+      "parentName": "Ramesh Verma",
+      "dob": "2005-08-15",
+      "mobile": "9876543210",
+      "whatsapp": "9876543210",
+      "email": "thecerebralcompass@gmail.com",
+      "aadhaar": "5432 1098 7654",
+      "address": "Sector 62, Noida, Uttar Pradesh",
+      "state": "Uttar Pradesh"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "AIR 14,250 (645 Marks)",
+      "category": "General / UR",
+      "tenthDetails": "94% (CBSE Board)",
+      "twelfthDetails": "91% (PCB - CBSE Board)",
+      "approximateBudget": "₹15 Lakhs – ₹35 Lakhs"
+    }
+  },
+  {
+    "id": "CC-2026-LIVE-89339",
+    "submittedAt": "2026-10-16T08:39:15.549Z",
+    "status": "Application Received & Verified ✓",
+    "currentStage": "Counsellor Choice Allocation",
+    "stagesCompleted": [
+      "Application Form",
+      "Document Verification",
+      "Payment Confirmation"
+    ],
+    "paymentStatus": "Paid & Confirmed ✓",
+    "transactionId": "pay_razorpay_1792139955565",
+    "paymentGateway": "Razorpay Verified",
+    "basePackagePrice": "₹69,999.00",
+    "gstAmount": "₹12,599.82",
+    "gstRate": "18%",
+    "paidAmount": "₹82,598.82",
+    "packageSelected": "MBBS Plan: Private Counselling Plan (₹82,598.82)",
+    "personal": {
+      "studentName": "Priya Verma",
+      "parentName": "Ramesh Verma",
+      "dob": "2005-08-15",
+      "mobile": "9876543210",
+      "whatsapp": "9876543210",
+      "email": "thecerebralcompass@gmail.com",
+      "aadhaar": "5432 1098 7654",
+      "address": "Sector 62, Noida, Uttar Pradesh",
+      "state": "Uttar Pradesh"
+    },
+    "academic": {
+      "courseInterested": "MBBS",
+      "entranceExam": "NEET UG",
+      "rankScore": "AIR 14,250 (645 Marks)",
+      "category": "General / UR",
+      "tenthDetails": "94% (CBSE Board)",
+      "twelfthDetails": "91% (PCB - CBSE Board)",
+      "approximateBudget": "₹15 Lakhs – ₹35 Lakhs"
+    }
+  },
+  {
     "id": "CC-2026-44174",
     "submittedAt": "2026-10-10T08:32:16.438Z",
     "status": "Application Received ✓",
