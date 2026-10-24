@@ -212,7 +212,7 @@ export default function PackagesPaymentPage({ onNavigate, onApplyWithPackage }) 
 
                       return (
                         <a
-                          href={`https://wa.me/917779820944?text=${encodeURIComponent(waQuery)}`}
+                          href={`https://wa.me/916204934005?text=${encodeURIComponent(waQuery)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="w-full py-2.5 rounded-xl bg-slate-50 hover:bg-emerald-50 text-slate-700 hover:text-emerald-800 text-[11px] font-bold font-mono border border-slate-200 transition-colors flex items-center justify-center gap-1.5"

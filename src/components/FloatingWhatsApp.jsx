@@ -3,7 +3,7 @@ import { MessageCircle } from 'lucide-react';
 
 export default function FloatingWhatsApp() {
   const whatsappUrl =
-    'https://wa.me/917779820944?text=Hello%20Cerebral%20Compass%20Pvt%20Ltd,%20I%20need%20expert%20career%20counselling%20guidance.';
+    'https://wa.me/916204934005?text=Hello%20Cerebral%20Compass%20Pvt%20Ltd,%20I%20need%20expert%20career%20counselling%20guidance.';
 
   return (
     <div className="fixed bottom-6 right-6 z-50">

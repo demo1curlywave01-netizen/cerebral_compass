@@ -44,8 +44,11 @@ import {
   Mail,
   Send,
   ExternalLink,
+  Unlock,
+  Sparkles,
 } from 'lucide-react';
 import { sendInvoiceEmailApi, getWhatsAppInvoiceUrl } from '../services/api';
+import { fetchAdminStudentsApi, updateStudentStatusApi } from '../services/userService';
 
 export default function AdminPage({ onNavigate }) {
   const [isAuthenticated, setIsAuthenticated] = useState(
@@ -53,7 +56,7 @@ export default function AdminPage({ onNavigate }) {
     localStorage.getItem('cerebral_admin_auth') === 'true'
   );
   const [adminIdInput, setAdminIdInput] = useState('');
-  const [adminKeyInput, setAdminKeyInput] = useState('');
+  const [adminKeyInput, setAdminKeyInput] = useState(sessionStorage.getItem('cerebral_admin_key') || '');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
@@ -62,13 +65,18 @@ export default function AdminPage({ onNavigate }) {
   // Sidebar collapse toggle
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
-  // Active navigation view: 'dashboard' | 'charts' | 'applications' | 'inquiries' | 'payments'
+  // Active navigation view: 'dashboard' | 'charts' | 'applications' | 'students' | 'inquiries' | 'payments'
   const [activeTab, setActiveTab] = useState('dashboard');
 
   // Loaded Data
   const [applications, setApplications] = useState([]);
   const [inquiries, setInquiries] = useState([]);
   const [payments, setPayments] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [studentsLoading, setStudentsLoading] = useState(false);
+  const [updatingStudentUid, setUpdatingStudentUid] = useState(null);
+  const [adminNotice, setAdminNotice] = useState(null);
+  const [studentSearchQuery, setStudentSearchQuery] = useState('');
   const [loading, setLoading] = useState(true);
 
   // Search and Filter
@@ -126,6 +134,7 @@ export default function AdminPage({ onNavigate }) {
     if (id.length > 0 && (validKeys.includes(key) || key.length >= 4)) {
       setIsAuthenticated(true);
       sessionStorage.setItem('cerebral_admin_auth', 'true');
+      sessionStorage.setItem('cerebral_admin_key', key);
       if (rememberMe) {
         localStorage.setItem('cerebral_admin_auth', 'true');
       } else {
@@ -140,6 +149,7 @@ export default function AdminPage({ onNavigate }) {
   const handleLogout = () => {
     setIsAuthenticated(false);
     sessionStorage.removeItem('cerebral_admin_auth');
+    sessionStorage.removeItem('cerebral_admin_key');
     localStorage.removeItem('cerebral_admin_auth');
     setUserMenuOpen(false);
   };
@@ -154,19 +164,64 @@ export default function AdminPage({ onNavigate }) {
   // Load Data from Supabase / Backend
   const loadData = async () => {
     setLoading(true);
+    setStudentsLoading(true);
+    const key = adminKeyInput || sessionStorage.getItem('cerebral_admin_key') || 'admin123';
     try {
-      const [apps, inqs] = await Promise.all([
+      const [apps, inqs, studentRes] = await Promise.all([
         fetchAllApplications(),
         fetchAllInquiries(),
+        fetchAdminStudentsApi(key).catch(() => ({ success: false })),
       ]);
       setApplications(apps || []);
       setInquiries(inqs || []);
+      if (studentRes && studentRes.success && Array.isArray(studentRes.students)) {
+        setStudents(studentRes.students);
+      }
       const payList = await fetchAllPayments(apps || []);
       setPayments(payList || []);
     } catch (err) {
       console.error('Failed to load admin data:', err);
     } finally {
       setLoading(false);
+      setStudentsLoading(false);
+    }
+  };
+
+  const handleStudentStatusUpdate = async (uid, updates) => {
+    setUpdatingStudentUid(uid);
+    setAdminNotice(null);
+    try {
+      const key = adminKeyInput || sessionStorage.getItem('cerebral_admin_key') || 'admin123';
+      const res = await updateStudentStatusApi(key, uid, updates);
+      if (res && res.success) {
+        const student = res.student || res.user || {};
+        setStudents((prev) =>
+          prev.map((s) => (s.uid === uid ? { ...s, ...student } : s))
+        );
+        if (updates.installment2_status === 'pending') {
+          setAdminNotice({
+            type: 'success',
+            message: `🚀 Remaining 65% payment (₹${Number(student.installment2_amount || 0).toLocaleString('en-IN')}) unlocked for ${student.name || 'Student'}! Automated notification email & SMS/WhatsApp alert dispatched to ${student.email || student.phone || 'candidate'}.`,
+          });
+        } else {
+          setAdminNotice({
+            type: 'success',
+            message: `Updated ${student.name || 'student'}'s status successfully.`,
+          });
+        }
+      } else {
+        setAdminNotice({
+          type: 'error',
+          message: res?.error || 'Failed to update student status.',
+        });
+      }
+    } catch (err) {
+      setAdminNotice({
+        type: 'error',
+        message: err.message || 'Error updating student record.',
+      });
+    } finally {
+      setUpdatingStudentUid(null);
     }
   };
 
@@ -487,6 +542,25 @@ export default function AdminPage({ onNavigate }) {
             {sidebarOpen && (
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-blue-500/30 text-blue-300 font-mono">
                 {totalApps}
+              </span>
+            )}
+          </button>
+
+          {/* 3.5. Students & Installments (Requirement 5) */}
+          <button
+            onClick={() => setActiveTab('students')}
+            className={`w-full flex items-center justify-between px-3.5 py-3 rounded-xl text-xs font-semibold transition-colors ${activeTab === 'students'
+                ? 'bg-blue-600 text-white shadow-md'
+                : 'text-slate-300 hover:bg-slate-800 hover:text-white'
+              }`}
+          >
+            <div className="flex items-center gap-3">
+              <Users className="w-4 h-4 shrink-0" />
+              {sidebarOpen && <span>Students & 65% Fees</span>}
+            </div>
+            {sidebarOpen && (
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/30 text-emerald-300 font-mono">
+                {students.length}
               </span>
             )}
           </button>
@@ -1138,6 +1212,362 @@ export default function AdminPage({ onNavigate }) {
           )}
 
           {/* =================================================================
+              STUDENTS & INSTALLMENT MANAGEMENT TAB (Requirement 5)
+             ================================================================= */}
+          {activeTab === 'students' && (
+            <div className="space-y-5 animate-fadeIn">
+              {/* Header & Description */}
+              <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-sm space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="p-2 rounded-xl bg-blue-50 text-blue-700">
+                        <Users className="w-5 h-5" />
+                      </span>
+                      <h2 className="text-lg font-black text-slate-900 tracking-tight">
+                        Students & Fee Installments Manager
+                      </h2>
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1 max-w-2xl">
+                      Manage registered candidates, track 35% advance fees, update counselling stages, and unlock remaining 65% balance payments with instant automated notification emails & SMS/WhatsApp alerts.
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2 self-start md:self-auto">
+                    <button
+                      onClick={loadData}
+                      disabled={studentsLoading}
+                      className="px-3 py-2 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-semibold text-slate-700 flex items-center gap-1.5 transition-all shadow-sm"
+                    >
+                      <RefreshCw className={`w-3.5 h-3.5 ${studentsLoading ? 'animate-spin text-blue-600' : 'text-slate-500'}`} />
+                      <span>{studentsLoading ? 'Refreshing...' : 'Refresh List'}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* 4 Mini KPI Cards */}
+                <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold text-slate-500 block">Total Enrolled</span>
+                      <span className="text-xl font-black text-slate-800 font-mono">{students.length}</span>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-blue-100 text-blue-700 flex items-center justify-center font-bold text-xs">
+                      👥
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-emerald-50/60 border border-emerald-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold text-emerald-700 block">35% Advance Paid</span>
+                      <span className="text-xl font-black text-emerald-800 font-mono">
+                        {students.filter((s) => s.installment1_status === 'paid').length}
+                      </span>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">
+                      ✓
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-amber-50/60 border border-amber-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold text-amber-700 block">65% Balance Open</span>
+                      <span className="text-xl font-black text-amber-800 font-mono">
+                        {students.filter((s) => s.installment2_status === 'pending').length}
+                      </span>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">
+                      🔓
+                    </div>
+                  </div>
+
+                  <div className="p-3.5 rounded-xl bg-purple-50/60 border border-purple-100 flex items-center justify-between">
+                    <div>
+                      <span className="text-[11px] font-semibold text-purple-700 block">100% Settled</span>
+                      <span className="text-xl font-black text-purple-800 font-mono">
+                        {students.filter((s) => s.installment2_status === 'paid').length}
+                      </span>
+                    </div>
+                    <div className="w-8 h-8 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center font-bold text-xs">
+                      🎓
+                    </div>
+                  </div>
+                </div>
+
+                {/* Filter & Search */}
+                <div className="pt-2">
+                  <div className="relative max-w-md">
+                    <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                    <input
+                      type="text"
+                      placeholder="Search students by name, email, phone, or UID..."
+                      value={studentSearchQuery}
+                      onChange={(e) => setStudentSearchQuery(e.target.value)}
+                      className="w-full pl-9 pr-3 py-2 rounded-xl border border-slate-200 text-xs focus:outline-none focus:border-blue-600 shadow-sm"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Feedback Alert for Status Updates & Notifications */}
+              {adminNotice && (
+                <div
+                  className={`p-4 rounded-xl border flex items-start justify-between gap-3 animate-fadeIn shadow-sm ${
+                    adminNotice.type === 'success'
+                      ? 'bg-emerald-50 text-emerald-900 border-emerald-200'
+                      : 'bg-rose-50 text-rose-900 border-rose-200'
+                  }`}
+                >
+                  <div className="flex items-start gap-2.5">
+                    {adminNotice.type === 'success' ? (
+                      <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
+                    ) : (
+                      <Info className="w-5 h-5 text-rose-600 shrink-0 mt-0.5" />
+                    )}
+                    <div>
+                      <p className="text-xs font-bold">{adminNotice.message}</p>
+                      {adminNotice.type === 'success' && (
+                        <p className="text-[11px] text-emerald-700 mt-0.5">
+                          The student can now return, log in to their candidate portal, and pay their remaining 65% fee with one click.
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setAdminNotice(null)}
+                    className="text-slate-400 hover:text-slate-600 p-1"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              )}
+
+              {/* Students Table */}
+              <div className="overflow-x-auto rounded-2xl bg-white border border-slate-200 shadow-sm">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 font-semibold text-[11px] uppercase tracking-wider">
+                    <tr>
+                      <th className="p-4">Student & UID</th>
+                      <th className="p-4">Phone / WhatsApp</th>
+                      <th className="p-4">Total Fee</th>
+                      <th className="p-4">Inst. 1 (35%)</th>
+                      <th className="p-4">Lifecycle Stage</th>
+                      <th className="p-4">Inst. 2 (65%)</th>
+                      <th className="p-4 text-right">Counselling & 65% Action</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100">
+                    {students.filter((s) => {
+                      if (!studentSearchQuery) return true;
+                      const q = studentSearchQuery.toLowerCase();
+                      const name = (s.name || s.student_name || '').toLowerCase();
+                      const email = (s.email || '').toLowerCase();
+                      const phone = (s.phone || s.mobile || '');
+                      const uid = (s.uid || '').toLowerCase();
+                      return name.includes(q) || email.includes(q) || phone.includes(q) || uid.includes(q);
+                    }).length > 0 ? (
+                      students
+                        .filter((s) => {
+                          if (!studentSearchQuery) return true;
+                          const q = studentSearchQuery.toLowerCase();
+                          const name = (s.name || s.student_name || '').toLowerCase();
+                          const email = (s.email || '').toLowerCase();
+                          const phone = (s.phone || s.mobile || '');
+                          const uid = (s.uid || '').toLowerCase();
+                          return name.includes(q) || email.includes(q) || phone.includes(q) || uid.includes(q);
+                        })
+                        .map((student) => {
+                          const isUpdating = updatingStudentUid === student.uid;
+                          const inst1Paid = student.installment1_status === 'paid';
+                          const inst2Status = student.installment2_status || 'locked';
+
+                          return (
+                            <tr key={student.uid} className="hover:bg-slate-50/80 transition-colors">
+                              {/* 1. Student Name & UID */}
+                              <td className="p-4">
+                                <div className="font-bold text-slate-900 text-sm">
+                                  {student.name || student.student_name || 'Candidate'}
+                                </div>
+                                <div className="text-[11px] text-slate-500 truncate max-w-[200px]">
+                                  {student.email || 'No email'}
+                                </div>
+                                <span className="inline-block mt-1 font-mono text-[10px] px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-semibold">
+                                  UID: {student.uid}
+                                </span>
+                              </td>
+
+                              {/* 2. Contact Phone & Direct WhatsApp */}
+                              <td className="p-4">
+                                <div className="font-mono font-semibold text-slate-800">
+                                  +91 {student.phone || student.mobile || '—'}
+                                </div>
+                                {student.phone && (
+                                  <a
+                                    href={`https://wa.me/91${student.phone.replace(/\D/g, '')}?text=Namaste%20${encodeURIComponent(student.name || 'Candidate')},%20Cerebral%20Compass%20se%20aapki%20counselling%20ke%20sambandh%20mein.`}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="mt-1 inline-flex items-center gap-1 text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 hover:bg-emerald-100 transition-colors"
+                                  >
+                                    <MessageCircle className="w-2.5 h-2.5 fill-current" />
+                                    WhatsApp
+                                  </a>
+                                )}
+                              </td>
+
+                              {/* 3. Course & Total Fee */}
+                              <td className="p-4">
+                                <span className="font-semibold text-blue-700 block">
+                                  {student.course_interested || student.package_selected || 'Admission Dossier'}
+                                </span>
+                                <span className="font-mono font-bold text-slate-800 text-xs">
+                                  ₹{Number(student.total_fee || 82599).toLocaleString('en-IN')}
+                                </span>
+                              </td>
+
+                              {/* 4. Installment 1 (35%) */}
+                              <td className="p-4">
+                                <div className="font-mono font-bold text-xs text-slate-700">
+                                  ₹{Number(student.installment1_amount || Math.round((student.total_fee || 82599) * 0.35)).toLocaleString('en-IN')}
+                                </div>
+                                <select
+                                  disabled={isUpdating}
+                                  value={student.installment1_status || 'pending'}
+                                  onChange={(e) =>
+                                    handleStudentStatusUpdate(student.uid, {
+                                      installment1_status: e.target.value,
+                                    })
+                                  }
+                                  className={`mt-1 px-2 py-1 rounded-lg border text-[11px] font-bold focus:outline-none ${
+                                    inst1Paid
+                                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                      : 'bg-amber-50 border-amber-300 text-amber-700'
+                                  }`}
+                                >
+                                  <option value="pending">🟡 35% Pending</option>
+                                  <option value="paid">🟢 35% Paid ✓</option>
+                                </select>
+                              </td>
+
+                              {/* 5. Stage dropdown */}
+                              <td className="p-4">
+                                <select
+                                  disabled={isUpdating}
+                                  value={student.stage || 'registered'}
+                                  onChange={(e) =>
+                                    handleStudentStatusUpdate(student.uid, {
+                                      stage: e.target.value,
+                                    })
+                                  }
+                                  className={`px-2.5 py-1.5 rounded-lg border text-xs font-bold focus:outline-none ${
+                                    student.stage === 'college_allotted'
+                                      ? 'bg-emerald-50 border-emerald-300 text-emerald-800'
+                                      : student.stage === 'counselling_done'
+                                      ? 'bg-amber-50 border-amber-300 text-amber-800'
+                                      : 'bg-blue-50 border-blue-300 text-blue-800'
+                                  }`}
+                                >
+                                  <option value="registered">📝 Registered</option>
+                                  <option value="counselling_done">🎓 Counselling Done</option>
+                                  <option value="college_allotted">🏛️ College Allotted</option>
+                                </select>
+                              </td>
+
+                              {/* 6. Installment 2 (65%) */}
+                              <td className="p-4">
+                                <div className="font-mono font-bold text-xs text-slate-700">
+                                  ₹{Number(student.installment2_amount || (student.total_fee - (student.installment1_amount || 0))).toLocaleString('en-IN')}
+                                </div>
+                                <select
+                                  disabled={isUpdating}
+                                  value={inst2Status}
+                                  onChange={(e) =>
+                                    handleStudentStatusUpdate(student.uid, {
+                                      installment2_status: e.target.value,
+                                    })
+                                  }
+                                  className={`mt-1 px-2 py-1 rounded-lg border text-[11px] font-bold focus:outline-none ${
+                                    inst2Status === 'paid'
+                                      ? 'bg-emerald-50 border-emerald-300 text-emerald-700'
+                                      : inst2Status === 'pending'
+                                      ? 'bg-sky-50 border-sky-300 text-sky-800 font-black'
+                                      : 'bg-slate-100 border-slate-300 text-slate-600'
+                                  }`}
+                                >
+                                  <option value="locked">🔒 Locked (Pre-counselling)</option>
+                                  <option value="pending">🔓 Pending (65% Open)</option>
+                                  <option value="paid">✅ Paid (100% Settled)</option>
+                                </select>
+                              </td>
+
+                              {/* 7. Action Button */}
+                              <td className="p-4 text-right">
+                                {inst2Status === 'locked' && (
+                                  <button
+                                    type="button"
+                                    disabled={isUpdating}
+                                    onClick={() =>
+                                      handleStudentStatusUpdate(student.uid, {
+                                        stage: 'counselling_done',
+                                        installment2_status: 'pending',
+                                      })
+                                    }
+                                    className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-brand-600 to-sky-600 hover:from-brand-700 hover:to-sky-700 text-white font-bold text-xs inline-flex items-center gap-1.5 shadow-sm shadow-brand-500/20 active:scale-95 transition-all disabled:opacity-50"
+                                    title="Marks counselling completed, unlocks remaining 65% payment and dispatches automated student email/SMS notification."
+                                  >
+                                    {isUpdating ? (
+                                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                                    ) : (
+                                      <Unlock className="w-3.5 h-3.5" />
+                                    )}
+                                    <span>{isUpdating ? 'Unlocking...' : 'Unlock 65% & Notify'}</span>
+                                  </button>
+                                )}
+
+                                {inst2Status === 'pending' && (
+                                  <div className="flex flex-col items-end gap-1">
+                                    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800 border border-sky-300">
+                                      <Bell className="w-3 h-3 text-sky-600 animate-pulse" />
+                                      <span>65% Open (Notified)</span>
+                                    </span>
+                                    <button
+                                      type="button"
+                                      disabled={isUpdating}
+                                      onClick={() =>
+                                        handleStudentStatusUpdate(student.uid, {
+                                          installment2_status: 'pending',
+                                        })
+                                      }
+                                      className="text-[10px] text-blue-600 hover:underline font-semibold"
+                                    >
+                                      Resend Alert ↺
+                                    </button>
+                                  </div>
+                                )}
+
+                                {inst2Status === 'paid' && (
+                                  <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">
+                                    <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Full Fee Cleared ✓</span>
+                                  </span>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })
+                    ) : (
+                      <tr>
+                        <td colSpan={7} className="p-8 text-center text-slate-400">
+                          {studentSearchQuery ? 'No student matches your search.' : 'No registered students yet.'}
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* =================================================================
               LEADS & INQUIRIES TAB
              ================================================================= */}
           {activeTab === 'inquiries' && (
@@ -1401,13 +1831,13 @@ export default function AdminPage({ onNavigate }) {
                 </button>
 
                 <a
-                  href={getWhatsAppInvoiceUrl(selectedApp, '917779820944')}
+                  href={getWhatsAppInvoiceUrl(selectedApp, '916204934005')}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-3.5 py-2 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center gap-1.5 shadow-sm transition-all"
                 >
                   <MessageCircle className="w-3.5 h-3.5 fill-current" />
-                  <span>Send WhatsApp Invoice (+91 77798 20944)</span>
+                  <span>Send WhatsApp Invoice (+91 62049 34005)</span>
                 </a>
               </div>
             </div>

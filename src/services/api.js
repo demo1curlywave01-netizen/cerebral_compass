@@ -219,11 +219,11 @@ ${termsUrl}
 
 🙏 Thank you for choosing Cerebral Compass. Our senior admission director will connect with you on WhatsApp within 30 minutes.
 📞 Official Support: +91 77798 20944
-💬 WhatsApp: +91 77798 20944`;
+💬 WhatsApp: +91 62049 34005`;
 };
 
-export const getWhatsAppInvoiceUrl = (data, targetPhone = '917779820944') => {
-  const cleanPhone = (targetPhone || '917779820944').replace(/[^0-9]/g, '');
+export const getWhatsAppInvoiceUrl = (data, targetPhone = '916204934005') => {
+  const cleanPhone = (targetPhone || '916204934005').replace(/[^0-9]/g, '');
   const message = formatWhatsAppInvoiceMessage(data);
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 };

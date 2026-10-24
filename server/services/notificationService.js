@@ -28,7 +28,7 @@ for (const name of candidatePdfNames) {
 // Default config
 export const notificationConfig = {
   testEmail: process.env.TEST_NOTIFICATION_EMAIL || 'thecerebralcompass@gmail.com',
-  officialWhatsapp: process.env.OFFICIAL_WHATSAPP || '+917779820944',
+  officialWhatsapp: process.env.OFFICIAL_WHATSAPP || '+916204934005',
   companyName: 'Cerebral Compass Pvt Ltd',
   legalPdfPath: legalPdfPath,
   termsPublicUrl: 'https://cerebralcompass.com/documents/all-legal-pages.pdf',
@@ -138,7 +138,7 @@ ${termsUrl}
 
 🙏 Thank you for partnering with Cerebral Compass. Our senior admission director will connect with you on WhatsApp within 30 minutes.
 📞 Official Support: +91 77798 20944
-💬 WhatsApp: +91 77798 20944`;
+💬 WhatsApp: +91 62049 34005`;
 }
 
 /**
@@ -261,7 +261,7 @@ export function formatInvoiceHtmlEmail(data) {
       </div>
       <div class="footer">
         Cerebral Compass Pvt Ltd • Muzaffarpur, Bihar - 842002<br>
-        Helpline: +91 77798 20944 • WhatsApp: +91 77798 20944 • Email: thecerebralcompass@gmail.com
+        Helpline: +91 77798 20944 • WhatsApp: +91 62049 34005 • Email: thecerebralcompass@gmail.com
       </div>
     </div>
   </body>
@@ -334,3 +334,122 @@ export function generateWhatsAppInvoiceUrl(data, targetPhone) {
   const message = formatInvoiceTextMessage(data);
   return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
 }
+
+/**
+ * Format plain text notification for 65% Remaining Installment Open
+ */
+export function formatInstallment2TextMessage(data) {
+  const studentName = data.name || data.student_name || 'Valued Student';
+  const amount = data.installment2_amount ? `₹${Number(data.installment2_amount).toLocaleString('en-IN')}` : 'Rs. 65%';
+  const total = data.total_fee ? `₹${Number(data.total_fee).toLocaleString('en-IN')}` : '';
+  const portalUrl = data.portalUrl || 'https://cerebralcompass.com';
+
+  return `📢 *CEREBRAL COMPASS — COUNSELLING COMPLETED & PAYMENT OPEN*
+----------------------------------------
+Dear ${studentName},
+
+Great news! Your comprehensive career & admission counselling session has been successfully completed by our Senior Advisory Council.
+
+Your remaining *65% final admission installment* is now officially unlocked:
+💰 *Remaining Amount Due (65%):* ${amount}
+📊 *Total Package Fee:* ${total}
+🎓 *Admission Stage:* Counselling Completed ✓
+
+Please log in to your Cerebral Compass Student Portal to complete your final 65% payment and proceed with choice locking / seat allotment:
+🔗 *Portal Link:* ${portalUrl}
+
+For immediate queries or dedicated counsellor support:
+📞 Official Support: +91 77798 20944
+💬 WhatsApp: +91 62049 34005`;
+}
+
+/**
+ * Send Email Notification when Admin unlocks 65% Installment (Counselling Done)
+ */
+export async function sendInstallment2NotificationEmail(data) {
+  try {
+    const { transporter, isLive, sender } = await getEmailTransporter();
+    const recipient = data.email || data.recipientEmail || notificationConfig.testEmail;
+    const studentName = data.name || data.student_name || 'Student';
+    const amountStr = data.installment2_amount ? `₹${Number(data.installment2_amount).toLocaleString('en-IN')}` : 'the remaining 65%';
+    const totalStr = data.total_fee ? `₹${Number(data.total_fee).toLocaleString('en-IN')}` : '';
+
+    const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="utf-8">
+      <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background-color: #f1f5f9; margin: 0; padding: 24px; color: #1e293b; }
+        .card { max-width: 620px; margin: 0 auto; background: #ffffff; border-radius: 20px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.06); border: 1px solid #e2e8f0; }
+        .header { background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); color: #ffffff; padding: 36px 30px; text-align: center; }
+        .header h1 { margin: 0 0 8px 0; font-size: 24px; font-weight: 800; }
+        .badge { display: inline-block; background: rgba(255,255,255,0.2); padding: 4px 14px; border-radius: 9999px; font-size: 12px; font-weight: bold; text-transform: uppercase; letter-spacing: 0.05em; }
+        .body { padding: 32px 30px; }
+        .alert-box { background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 14px; padding: 20px; margin: 20px 0; text-align: center; }
+        .amount-display { font-size: 32px; font-weight: 900; color: #0284c7; margin: 8px 0; }
+        .btn { display: inline-block; background: #0284c7; color: #ffffff !important; text-decoration: none; padding: 14px 32px; font-weight: bold; font-size: 15px; border-radius: 12px; margin-top: 16px; box-shadow: 0 4px 12px rgba(2,132,199,0.3); }
+        .footer { background: #f8fafc; padding: 20px 30px; border-top: 1px solid #e2e8f0; font-size: 12px; color: #64748b; text-align: center; }
+      </style>
+    </head>
+    <body>
+      <div class="card">
+        <div class="header">
+          <span class="badge">Counselling Milestone Completed ✓</span>
+          <h1>Your Remaining 65% Payment Is Now Open</h1>
+          <p style="margin: 0; font-size: 14px; opacity: 0.9;">Cerebral Compass Pvt Ltd — Admission Mentorship</p>
+        </div>
+        <div class="body">
+          <p>Dear <strong>${studentName}</strong>,</p>
+          <p>We are pleased to inform you that your strategic admission counselling and choice-preference evaluation has been successfully completed by our Senior Advisory Council.</p>
+          
+          <div class="alert-box">
+            <span style="font-size: 13px; color: #64748b; font-weight: bold; text-transform: uppercase;">Installment 2 of 2 (65%) Due</span>
+            <div class="amount-display">${amountStr}</div>
+            <p style="margin: 0; font-size: 13px; color: #475569;">Total Advisory Package Fee: <strong>${totalStr}</strong> (35% Advance Received)</p>
+            <a href="${data.portalUrl || 'http://localhost:5173'}" class="btn">Login & Complete 65% Payment →</a>
+          </div>
+
+          <p style="font-size: 14px; line-height: 1.6; color: #475569;">
+            Once this payment is confirmed, your verified choice locking sheet will be finalized and submitted for upcoming counseling allotment rounds.
+          </p>
+        </div>
+        <div class="footer">
+          <strong>Cerebral Compass Pvt Ltd</strong> • Muzaffarpur, Bihar - 842002<br>
+          Official Support: +91 77798 20944 • WhatsApp: +91 62049 34005 • Email: thecerebralcompass@gmail.com
+        </div>
+      </div>
+    </body>
+    </html>
+    `;
+
+    const recipientList = Array.from(new Set([recipient, 'thecerebralcompass@gmail.com'].filter(Boolean)));
+
+    const mailOptions = {
+      from: isLive ? `"Cerebral Compass Admissions" <${sender}>` : sender,
+      to: isLive ? recipientList.join(', ') : recipient,
+      subject: `📢 Counselling Done: Remaining 65% Payment (${amountStr}) Is Now Open - ${studentName}`,
+      text: formatInstallment2TextMessage(data),
+      html: html,
+    };
+
+    const info = await transporter.sendMail(mailOptions);
+    const previewUrl = !isLive ? nodemailer.getTestMessageUrl(info) : null;
+
+    return {
+      success: true,
+      messageId: info.messageId,
+      recipient: recipient,
+      isLive: isLive,
+      previewUrl: previewUrl,
+      message: `Notification email dispatched to ${recipient}`,
+    };
+  } catch (error) {
+    console.error('Installment 2 notification error:', error);
+    return {
+      success: false,
+      error: error.message || 'Notification dispatch failed',
+    };
+  }
+}
+

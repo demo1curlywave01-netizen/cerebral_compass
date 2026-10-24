@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import InstitutionalCertificatesSection from '../components/InstitutionalCertificatesSection';
 import { submitApplicationApi, uploadDocumentApi, sendInvoiceEmailApi, getWhatsAppInvoiceUrl } from '../services/api';
+import { getCurrentUser, loginWithGoogle, logout } from '../services/authService';
+import { fetchUserByUid, saveUserRegistration, createPaymentOrderApi, verifyPaymentApi } from '../services/userService';
 import { calculateGstBreakdown, parsePackageGst } from '../utils/gstCalculator';
 import { getClientNextReferenceId } from '../utils/referenceId';
 import confetti from 'canvas-confetti';
@@ -22,6 +24,8 @@ import {
   Download,
   MessageCircle,
   Sparkles,
+  Check,
+  LogIn,
 } from 'lucide-react';
 
 export default function ApplicationFormPage({
@@ -30,12 +34,41 @@ export default function ApplicationFormPage({
   onNavigate,
   onApplicationSuccess,
 }) {
+  const [currentUser, setCurrentUser] = useState(getCurrentUser());
+  const [userRecord, setUserRecord] = useState(null);
+  const [loadingUser, setLoadingUser] = useState(false);
+  const [payingInstallmentNum, setPayingInstallmentNum] = useState(1);
+
   const tokenGst = calculateGstBreakdown(999);
   const [currentStep, setCurrentStep] = useState(1);
   const [submitting, setSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
   const [touchedFields, setTouchedFields] = useState({});
   const [submittedData, setSubmittedData] = useState(null);
+  const [googleLoading, setGoogleLoading] = useState(false);
+
+  const handleGoogleSignIn = async () => {
+    setGoogleLoading(true);
+    try {
+      const res = await loginWithGoogle();
+      if (res?.success && res?.user) {
+        setCurrentUser(res.user);
+        setFormData((prev) => ({
+          ...prev,
+          personal: {
+            ...prev.personal,
+            studentName: res.user.name || prev.personal.studentName,
+            email: res.user.email || prev.personal.email,
+            mobile: res.user.phone || prev.personal.mobile,
+          },
+        }));
+      }
+    } catch (err) {
+      console.warn('Google Sign-In failed:', err);
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
 
   // Selected Fee / Package Amount (including 18% GST)
   const [selectedFee, setSelectedFee] = useState(tokenGst ? tokenGst.totalPayable : 1178.82);
@@ -44,14 +77,15 @@ export default function ApplicationFormPage({
   const [feeOption, setFeeOption] = useState('package'); // 'package' | 'dossier'
 
   // Form State across all steps
+  // Form State across all steps
   const [formData, setFormData] = useState({
     personal: {
-      studentName: '',
+      studentName: currentUser?.name || '',
       parentName: '',
       dob: '',
-      mobile: '',
-      whatsapp: '',
-      email: '',
+      mobile: currentUser?.phone || '',
+      whatsapp: currentUser?.phone || '',
+      email: currentUser?.email || '',
       aadhaar: '',
       address: '',
       state: '',
@@ -86,6 +120,87 @@ export default function ApplicationFormPage({
     termsAccepted: false,
     accuracyConfirmed: false,
   });
+
+  // Listen for real-time auth state updates (e.g., from Google OAuth redirect)
+  useEffect(() => {
+    const handleAuthChange = (e) => {
+      const u = e.detail || getCurrentUser();
+      setCurrentUser(u);
+      if (u) {
+        setFormData((prev) => ({
+          ...prev,
+          personal: {
+            ...prev.personal,
+            studentName: u.name || prev.personal.studentName,
+            email: u.email || prev.personal.email,
+            mobile: u.phone || prev.personal.mobile,
+          },
+        }));
+      }
+    };
+    window.addEventListener('cerebral_auth_state_changed', handleAuthChange);
+    return () => window.removeEventListener('cerebral_auth_state_changed', handleAuthChange);
+  }, []);
+
+  // Load returning user record by UID and pre-fill ALL form fields
+  useEffect(() => {
+    const activeUser = currentUser || getCurrentUser();
+    if (activeUser?.uid) {
+      setLoadingUser(true);
+      fetchUserByUid(activeUser.uid).then((res) => {
+        if (res.success && res.user) {
+          const u = res.user;
+          setUserRecord(u);
+
+          // Pre-fill form so user never has to re-fill anything
+          setFormData((prev) => ({
+            ...prev,
+            personal: {
+              studentName: u.student_name || u.name || prev.personal.studentName,
+              parentName: u.parent_name || prev.personal.parentName,
+              dob: u.dob || prev.personal.dob,
+              mobile: u.phone || u.mobile || prev.personal.mobile,
+              whatsapp: u.whatsapp || u.phone || prev.personal.whatsapp,
+              email: u.email || prev.personal.email,
+              aadhaar: u.aadhaar || prev.personal.aadhaar,
+              address: u.address || prev.personal.address,
+              state: u.state || prev.personal.state,
+            },
+            academic: {
+              courseInterested: u.course_interested || prev.academic.courseInterested,
+              entranceExam: u.entrance_exam || prev.academic.entranceExam,
+              rankScore: u.rank_score || prev.academic.rankScore,
+              category: u.category || prev.academic.category,
+              tenthDetails: u.tenth_details || prev.academic.tenthDetails,
+              twelfthDetails: u.twelfth_details || prev.academic.twelfthDetails,
+              preferredStateCity: u.preferred_state_city || prev.academic.preferredStateCity,
+              approximateBudget: u.approximate_budget || prev.academic.approximateBudget,
+            },
+            preferences: u.preferences && Object.keys(u.preferences).length > 0 ? u.preferences : prev.preferences,
+            documents: u.documents && u.documents.length > 0 ? u.documents : prev.documents,
+            packageSelected: u.package_selected || prev.packageSelected,
+            termsAccepted: true,
+            accuracyConfirmed: true,
+          }));
+
+          // Set package and fee breakdown
+          const pkgToParse = u.package_selected || initialPackage;
+          if (pkgToParse) {
+            const gstBreakdown = parsePackageGst(pkgToParse);
+            if (gstBreakdown && gstBreakdown.totalPayable > 0) {
+              setPackageGstInfo(gstBreakdown);
+              setPackageFee(gstBreakdown.totalPayable);
+              setSelectedFee(u.installment1_amount || Math.round(gstBreakdown.totalPayable * 0.35));
+            }
+          }
+        }
+      }).catch((e) => {
+        console.warn('Error loading returning user record:', e);
+      }).finally(() => {
+        setLoadingUser(false);
+      });
+    }
+  }, [currentUser]);
 
   useEffect(() => {
     if (initialCourse) {
@@ -331,6 +446,36 @@ export default function ApplicationFormPage({
         setErrorMsg(errs[0]);
         return;
       }
+
+      // Requirement 3: Save ALL registration data in users table against UID before payment step
+      const activeUser = currentUser || getCurrentUser();
+      let activeUid = activeUser?.uid;
+      if (!activeUid) {
+        activeUid = `student_${Date.now()}`;
+        const guestUser = {
+          uid: activeUid,
+          name: formData.personal.studentName,
+          email: formData.personal.email,
+          phone: formData.personal.mobile,
+          provider: 'local',
+        };
+        setCurrentUser(guestUser);
+        localStorage.setItem('cerebral_auth_user', JSON.stringify(guestUser));
+      }
+
+      saveUserRegistration({
+        uid: activeUid,
+        name: formData.personal.studentName,
+        email: formData.personal.email,
+        phone: formData.personal.mobile,
+        ...formData,
+      }).then((savedRes) => {
+        if (savedRes && savedRes.user) {
+          setUserRecord(savedRes.user);
+        }
+      }).catch((e) => {
+        console.warn('Error saving registration to users table:', e);
+      });
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, 5));
@@ -431,26 +576,52 @@ export default function ApplicationFormPage({
     setErrorMsg('');
   };
 
-  // Razorpay Checkout Execution
-  const handleRazorpayPaymentAndSubmit = async () => {
+  // Server-Verified 2-Installment Payment Handler
+  const handlePayInstallment = async (instNum = 1) => {
     setErrorMsg('');
+    setSubmitting(true);
+    setPayingInstallmentNum(instNum);
 
-    // Declaration check
-    if (!formData.accuracyConfirmed || !formData.termsAccepted) {
-      setErrorMsg('Please check both declaration boxes to confirm accuracy and accept terms.');
-      return;
+    const activeUser = currentUser || getCurrentUser();
+    let activeUid = activeUser?.uid;
+    if (!activeUid) {
+      activeUid = `student_${Date.now()}`;
+      const guestUser = {
+        uid: activeUid,
+        name: formData.personal.studentName || 'Applicant',
+        email: formData.personal.email || '',
+        phone: formData.personal.mobile || '',
+        provider: 'local',
+      };
+      setCurrentUser(guestUser);
+      localStorage.setItem('cerebral_auth_user', JSON.stringify(guestUser));
     }
 
-    setSubmitting(true);
-
     try {
-      // 1. Ensure Razorpay script is available
+      // 1. Save all candidate dossier data to users table against their UID (Requirement 3)
+      const saveRes = await saveUserRegistration({
+        uid: activeUid,
+        name: formData.personal.studentName,
+        email: formData.personal.email,
+        phone: formData.personal.mobile,
+        ...formData,
+      });
+
+      if (saveRes?.user) {
+        setUserRecord(saveRes.user);
+      }
+
+      // 2. Request backend to create Razorpay Order for this specific installment
+      // Security: Backend calculates amount strictly on server from the users table (Requirement 6)
+      const orderRes = await createPaymentOrderApi(activeUid, instNum);
+      if (!orderRes.success) {
+        throw new Error(orderRes.error || `Failed to create payment order for Installment ${instNum}`);
+      }
+
+      // 3. Ensure Razorpay script is loaded
       const ensureRazorpayScript = () => {
         return new Promise((resolve, reject) => {
-          if (typeof window !== 'undefined' && window.Razorpay) {
-            resolve(true);
-            return;
-          }
+          if (typeof window !== 'undefined' && window.Razorpay) return resolve(true);
           const existing = document.querySelector('script[src*="checkout.razorpay.com"]');
           if (existing) {
             existing.onload = () => resolve(true);
@@ -465,24 +636,18 @@ export default function ApplicationFormPage({
           document.body.appendChild(script);
         });
       };
-
       await ensureRazorpayScript();
 
-      if (typeof window.Razorpay === 'undefined') {
-        throw new Error('Razorpay checkout module is not available. Please disable any ad-blockers and try again.');
-      }
-
-      const razorpayKey = import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_live_TnR7MmwIAXDS2G';
-      const orderAmountPaise = Math.round(Number(selectedFee) * 100);
-
+      // 4. Launch Razorpay popup
       const launchRazorpayPopup = () => {
         return new Promise((resolve, reject) => {
           const options = {
-            key: razorpayKey,
-            amount: orderAmountPaise,
+            key: orderRes.keyId || import.meta.env.VITE_RAZORPAY_KEY_ID || '',
+            order_id: orderRes.orderId && !orderRes.orderId.startsWith('order_cc_') ? orderRes.orderId : undefined,
+            amount: Math.round(Number(orderRes.amount) * 100),
             currency: 'INR',
             name: 'Cerebral Compass Pvt Ltd',
-            description: `${formData.packageSelected || 'Admission Counselling'} — ${formData.personal.studentName}`,
+            description: `Installment ${instNum} (${instNum === 1 ? '35% Advance Registration' : '65% Remaining Balance'}) — ${formData.personal.studentName}`,
             image: '/logo.png',
             handler: function (response) {
               if (!response || !response.razorpay_payment_id) {
@@ -492,7 +657,7 @@ export default function ApplicationFormPage({
               resolve({
                 success: true,
                 paymentId: response.razorpay_payment_id,
-                orderId: response.razorpay_order_id || `order_${Date.now()}`,
+                orderId: response.razorpay_order_id || orderRes.orderId,
                 signature: response.razorpay_signature || '',
               });
             },
@@ -502,25 +667,17 @@ export default function ApplicationFormPage({
               contact: formData.personal.mobile ? (formData.personal.mobile.startsWith('+91') ? formData.personal.mobile : `+91${formData.personal.mobile}`) : '',
             },
             notes: {
+              uid: activeUid,
+              installmentNumber: instNum,
               student_name: formData.personal.studentName,
-              parent_name: formData.personal.parentName || 'N/A',
-              student_mobile: formData.personal.mobile,
-              student_email: formData.personal.email,
-              course: formData.academic.courseInterested,
-              package_selected: formData.packageSelected,
-              amount_inr: `₹${selectedFee.toLocaleString('en-IN')}`,
-              fee_type: selectedFee > 999 ? 'Full Package Fee' : 'Dossier Registration Fee',
-              aadhaar_last4: formData.personal.aadhaar ? formData.personal.aadhaar.slice(-4) : '',
             },
-            theme: {
-              color: '#2b7ea4',
-            },
+            theme: { color: '#2b7ea4' },
             modal: {
               backdropclose: false,
               escape: false,
               handleback: true,
               ondismiss: function () {
-                reject(new Error('Payment window closed. No money was deducted. If deducted, it will auto-refund within 24-48 hours.'));
+                reject(new Error('Payment window closed. No money was deducted.'));
               },
             },
           };
@@ -537,22 +694,20 @@ export default function ApplicationFormPage({
 
       const paymentResult = await launchRazorpayPopup();
 
-      const activeGst = feeOption === 'package' && packageGstInfo ? packageGstInfo : (tokenGst || calculateGstBreakdown(999));
+      // 5. Verify payment with server and record in separate payments table (Requirement 6)
+      const verifyRes = await verifyPaymentApi({
+        uid: activeUid,
+        orderId: paymentResult.orderId,
+        paymentId: paymentResult.paymentId,
+        signature: paymentResult.signature,
+        installmentNumber: instNum,
+      });
 
-      // Submit application with verified payment
-      const finalPayload = {
-        ...formData,
-        paymentStatus: 'Paid & Confirmed ✓',
-        transactionId: paymentResult.paymentId,
-        paymentGateway: 'Razorpay',
-        basePackagePrice: activeGst.formattedBase,
-        gstAmount: activeGst.formattedGst,
-        gstRate: '18%',
-        paidAmount: activeGst.formattedTotal,
-        aadhaarVerified: true,
-      };
+      if (!verifyRes.success) {
+        throw new Error(verifyRes.error || 'Server signature verification failed.');
+      }
 
-      const response = await submitApplicationApi(finalPayload);
+      setUserRecord(verifyRes.user);
 
       confetti({
         particleCount: 140,
@@ -561,40 +716,93 @@ export default function ApplicationFormPage({
         colors: ['#2b7ea4', '#38bdf8', '#e0533c', '#10b981'],
       });
 
-      const finalAppRecord = response.application || {
-        id: response.applicationId,
+      const receiptRecord = {
+        id: activeUid,
         personal: formData.personal,
         academic: formData.academic,
         transactionId: paymentResult.paymentId,
-        basePackagePrice: activeGst.formattedBase,
-        gstAmount: activeGst.formattedGst,
-        gstRate: '18%',
-        paidAmount: activeGst.formattedTotal,
+        paidAmount: `₹${Number(orderRes.amount).toLocaleString('en-IN')}`,
+        installmentNumber: instNum,
         submittedAt: new Date().toISOString(),
       };
-
-      setSubmittedData(finalAppRecord);
-
-      // Automatically dispatch invoice email with attached Legal Terms & Conditions PDF
-      sendInvoiceEmailApi({
-        appId: finalAppRecord.id,
-        studentName: formData.personal?.studentName,
-        mobile: formData.personal?.mobile,
-        recipientEmail: formData.personal?.email || 'thecerebralcompass@gmail.com',
-        course: formData.academic?.courseInterested,
-        basePackagePrice: activeGst.formattedBase,
-        gstAmount: activeGst.formattedGst,
-        gstRate: '18%',
-        paidAmount: activeGst.formattedTotal,
-        transactionId: paymentResult.paymentId,
-      }).catch((emailErr) => console.warn('Background invoice email trigger notice:', emailErr));
+      setSubmittedData(receiptRecord);
 
       if (onApplicationSuccess) {
-        onApplicationSuccess(response.applicationId || response.application?.id);
+        onApplicationSuccess(activeUid);
       }
     } catch (err) {
-      console.warn('Payment or submission halted:', err);
-      setErrorMsg(err.message || 'Payment was not completed. Please try again.');
+      console.warn('Payment failed:', err);
+      setErrorMsg(err.message || 'Payment processing error.');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Razorpay Checkout Execution (Standard Form Action for Step 5)
+  const handleRazorpayPaymentAndSubmit = async () => {
+    setErrorMsg('');
+    if (!formData.accuracyConfirmed || !formData.termsAccepted) {
+      setErrorMsg('Please check both declaration boxes to confirm accuracy and accept terms.');
+      return;
+    }
+    await handlePayInstallment(1);
+  };
+
+  // Quick Simulation for Instant Testing without Live Bank Card
+  const handleSimulateTestPayment = async () => {
+    setErrorMsg('');
+    setSubmitting(true);
+    const instNum = payingInstallmentNum || 1;
+
+    const activeUser = currentUser || getCurrentUser();
+    let activeUid = activeUser?.uid || `student_${Date.now()}`;
+
+    try {
+      // 1. Save data to users table
+      await saveUserRegistration({
+        uid: activeUid,
+        name: formData.personal.studentName,
+        email: formData.personal.email,
+        phone: formData.personal.mobile,
+        ...formData,
+      });
+
+      // 2. Verify simulation with backend
+      const simTxn = `pay_sim_${Date.now()}`;
+      const verifyRes = await verifyPaymentApi({
+        uid: activeUid,
+        orderId: `order_sim_${Date.now()}`,
+        paymentId: simTxn,
+        signature: 'simulated_valid_sig',
+        installmentNumber: instNum,
+      });
+
+      if (verifyRes.user) {
+        setUserRecord(verifyRes.user);
+      }
+
+      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
+
+      const amountPaidNum = instNum === 1
+        ? (verifyRes.user?.installment1_amount || 28910)
+        : (verifyRes.user?.installment2_amount || 53689);
+
+      const receiptRecord = {
+        id: activeUid,
+        personal: formData.personal,
+        academic: formData.academic,
+        transactionId: simTxn,
+        paidAmount: `₹${Number(amountPaidNum).toLocaleString('en-IN')}`,
+        installmentNumber: instNum,
+        submittedAt: new Date().toISOString(),
+      };
+      setSubmittedData(receiptRecord);
+
+      if (onApplicationSuccess) {
+        onApplicationSuccess(activeUid);
+      }
+    } catch (err) {
+      setErrorMsg(err.message || 'Simulation error');
     } finally {
       setSubmitting(false);
     }
@@ -708,7 +916,7 @@ export default function ApplicationFormPage({
               </button>
 
               <a
-                href={getWhatsAppInvoiceUrl(submittedData, '917779820944')}
+                href={getWhatsAppInvoiceUrl(submittedData, '916204934005')}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="w-full sm:w-auto px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20 transition-all hover:scale-105"
@@ -750,6 +958,248 @@ export default function ApplicationFormPage({
             Complete your comprehensive candidate profile with verified credentials. All records are encrypted and validated in real time.
           </p>
         </div>
+
+        {/* CANDIDATE PRE-FORM AUTHENTICATION GATE / LOGIN PROMPT */}
+        {!currentUser ? (
+          <div className="mb-10 p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-brand-900 via-sky-950 to-indigo-950 text-white shadow-2xl relative overflow-hidden border border-brand-400/30 animate-fadeIn">
+            <div className="absolute top-0 right-0 w-64 h-64 bg-sky-400/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5 relative z-10">
+              <div className="space-y-1.5 max-w-xl">
+                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-500/20 border border-brand-400/40 text-sky-200 text-xs font-mono font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3.5 h-3.5 text-sky-300" />
+                  <span>Recommended Before Filling Form</span>
+                </div>
+                <h3 className="text-xl sm:text-2xl font-display font-extrabold text-white">
+                  Log In to Auto-Fill & Track Your Admission Dossier
+                </h3>
+                <p className="text-xs text-sky-200/90 leading-relaxed">
+                  Sign in with your verified Google account to auto-populate your details, protect your choice preferences, and track your senior counsellor allocation in real time.
+                </p>
+              </div>
+
+              <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 shrink-0">
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={googleLoading}
+                  className="px-6 py-3.5 rounded-2xl bg-white hover:bg-slate-50 text-slate-800 font-bold text-xs shadow-xl transition-all flex items-center justify-center gap-2.5 hover:scale-105 active:scale-95"
+                >
+                  <svg className="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" />
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" />
+                    <path fill="#FBBC05" d="M6.62 14.86c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.84H2.18C1.43 9.34 1 11.02 1 12.87s.43 3.53 1.18 5.03l4.44-3.04z" />
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.84l4.44 3.04c.87-2.6 3.3-4.53 6.16-4.53z" />
+                  </svg>
+                  <span>{googleLoading ? 'Connecting...' : 'Continue with Google'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => onNavigate && onNavigate('auth')}
+                  className="px-4 py-3.5 rounded-2xl bg-white/10 hover:bg-white/20 border border-white/20 text-white font-semibold text-xs transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <LogIn className="w-3.5 h-3.5" />
+                  <span>Email Login</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className="mb-8 p-4 sm:p-5 rounded-3xl bg-white border border-sky-200 shadow-md flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-fadeIn">
+            <div className="flex items-center gap-3.5">
+              <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-brand-600 to-sky-600 text-white font-extrabold flex items-center justify-center text-sm shadow-md shadow-brand-500/20 shrink-0 overflow-hidden">
+                {currentUser.avatar ? (
+                  <img src={currentUser.avatar} alt="" className="w-full h-full object-cover" />
+                ) : (
+                  (currentUser.name || 'C').charAt(0).toUpperCase()
+                )}
+              </div>
+              <div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs font-bold text-slate-800">
+                    Applying as: <strong className="text-brand-700">{currentUser.name}</strong>
+                  </span>
+                  <span className="px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-700 text-[10px] font-mono font-bold rounded-full flex items-center gap-1">
+                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
+                    <span>Logged In Verified</span>
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 font-mono">
+                  {currentUser.email} • Details auto-synced with dossier
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <button
+                type="button"
+                onClick={() => onNavigate && onNavigate('dashboard')}
+                className="px-4 py-2 rounded-xl bg-sky-50 hover:bg-sky-100 border border-sky-200 text-sky-800 font-bold text-xs transition-colors"
+              >
+                View My History 📋
+              </button>
+              <button
+                type="button"
+                onClick={async () => {
+                  await logout();
+                  setCurrentUser(null);
+                }}
+                className="px-3 py-2 rounded-xl border border-slate-200 text-slate-600 hover:text-rose-600 font-medium text-xs transition-colors"
+              >
+                Sign Out
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* RETURNING USER FLOW BANNERS & INSTANT ACTIONS (Requirement 4) */}
+        {userRecord && (
+          <div className="mb-8 space-y-4">
+            {/* Condition 1: 35% paid & 65% locked */}
+            {userRecord.installment1_status === 'paid' && userRecord.installment2_status === 'locked' && (
+              <div className="p-6 rounded-3xl bg-gradient-to-r from-sky-50 via-white to-blue-50 border-2 border-brand-500 shadow-xl text-slate-800 space-y-3 animate-fadeIn">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-brand-100 border border-brand-300 text-brand-700 flex items-center justify-center shrink-0">
+                      <Lock className="w-6 h-6 text-brand-600" />
+                    </div>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[10px] uppercase font-bold mb-1">
+                        <CheckCircle2 className="w-3.5 h-3.5" /> 35% Advance Payment Received ✓
+                      </div>
+                      <h3 className="text-base sm:text-lg font-display font-extrabold text-slate-900 leading-snug">
+                        Your 35% payment is received. The remaining 65% ({userRecord.installment2_amount ? `Rs ${Number(userRecord.installment2_amount).toLocaleString('en-IN')}` : 'Rs ____'}) will open after counselling.
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Your saved registration has been loaded from the database. All fields below are pre-filled so you do not have to fill them again. Senior counsellor profile review is in progress.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="flex sm:flex-col items-center sm:items-end gap-2 shrink-0">
+                    <span className="text-[11px] font-mono text-slate-500 uppercase">
+                      Stage: <strong className="text-brand-700">{userRecord.stage}</strong>
+                    </span>
+                    <button
+                      disabled
+                      title="Your 35% payment is received. The remaining 65% will open after counselling."
+                      className="px-5 py-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-xs cursor-not-allowed flex items-center gap-2 border border-slate-300 shadow-inner"
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>Pay 65% (Locked)</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Condition 2: 35% paid & 65% pending (Requirement 4: 35% paid. Rs ____ (65%) is remaining with enabled Pay Now button) */}
+            {userRecord.installment1_status === 'paid' && userRecord.installment2_status === 'pending' && (
+              <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-r from-amber-50 via-white to-orange-50 border-2 border-amber-400 shadow-2xl text-slate-800 space-y-4 animate-fadeIn ring-4 ring-amber-400/10">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-amber-100 border border-amber-300 text-amber-700 flex items-center justify-center shrink-0">
+                      <Sparkles className="w-6 h-6 text-amber-600" />
+                    </div>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-900 font-mono text-[10px] uppercase font-bold mb-1">
+                        📢 Counselling Completed & Ready For Choice Locking
+                      </div>
+                      <h3 className="text-lg sm:text-xl font-display font-black text-slate-900 leading-snug">
+                        35% paid. {userRecord.installment2_amount ? `Rs ${Number(userRecord.installment2_amount).toLocaleString('en-IN')}` : 'Rs ____'} (65%) is remaining.
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Your senior counselling session has been completed by admin. Complete your remaining 65% payment to finalize official seat allocation without having to re-fill the form.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 flex items-center gap-2">
+                    <button
+                      onClick={() => handlePayInstallment(2)}
+                      disabled={submitting}
+                      className="px-7 py-3.5 rounded-2xl bg-gradient-to-r from-amber-600 via-orange-600 to-coral-600 hover:from-amber-700 hover:to-orange-700 text-white font-extrabold text-sm shadow-xl shadow-amber-500/30 flex items-center gap-2 hover:scale-105 active:scale-95 transition-all"
+                    >
+                      {submitting && payingInstallmentNum === 2 ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Connecting Gateway...</span>
+                        </>
+                      ) : (
+                        <>
+                          <CreditCard className="w-4 h-4" />
+                          <span>Pay Now ({userRecord.installment2_amount ? `Rs ${Number(userRecord.installment2_amount).toLocaleString('en-IN')}` : '65%'})</span>
+                          <ArrowRight className="w-4 h-4" />
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Condition 3: Both paid */}
+            {userRecord.installment1_status === 'paid' && userRecord.installment2_status === 'paid' && (
+              <div className="p-6 rounded-3xl bg-gradient-to-r from-emerald-50 via-white to-teal-50 border-2 border-emerald-500 shadow-xl text-slate-800 space-y-4 animate-fadeIn">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div className="flex items-start gap-3.5">
+                    <div className="w-12 h-12 rounded-2xl bg-emerald-100 border border-emerald-300 text-emerald-700 flex items-center justify-center shrink-0">
+                      <CheckCircle2 className="w-6 h-6 text-emerald-600" />
+                    </div>
+                    <div>
+                      <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-mono text-[10px] uppercase font-bold mb-1">
+                        ✓ 100% Comprehensive Mentorship Secured
+                      </div>
+                      <h3 className="text-xl font-display font-extrabold text-slate-900 leading-snug">
+                        Payment complete
+                      </h3>
+                      <p className="text-xs text-slate-600 mt-1">
+                        Both installments have been settled in full. Your candidate registration and seat allotment tracking are active.
+                      </p>
+                    </div>
+                  </div>
+
+                  <div className="shrink-0 flex flex-wrap items-center gap-2">
+                    <button
+                      onClick={() => window.print()}
+                      className="px-5 py-2.5 rounded-xl bg-white border border-slate-200 text-slate-700 font-bold text-xs flex items-center gap-1.5 shadow-sm hover:bg-slate-50 transition-all"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Receipt Option</span>
+                    </button>
+                    <a
+                      href={getWhatsAppInvoiceUrl(userRecord, '916204934005')}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs flex items-center gap-1.5 shadow-md shadow-emerald-500/20 transition-all"
+                    >
+                      <MessageCircle className="w-4 h-4 fill-current" />
+                      <span>WhatsApp Receipt</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* User Account / Login Status Banner */}
+        {!currentUser && (
+          <div className="mb-8 p-4 rounded-2xl bg-white border border-sky-200 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+            <div className="flex items-center gap-2.5 text-slate-700">
+              <span className="w-2.5 h-2.5 rounded-full bg-brand-500 animate-pulse" />
+              <span>
+                <strong>Returning Candidate?</strong> Sign in with Google or Email to pre-fill your saved details and track your 35% / 65% installments.
+              </span>
+            </div>
+            <button
+              onClick={() => onNavigate && onNavigate('auth')}
+              className="px-4 py-2 rounded-xl bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold flex items-center gap-1.5 border border-brand-200 shrink-0 self-start sm:self-auto transition-all"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Sign In / Register</span>
+            </button>
+          </div>
+        )}
 
         {/* Step Progress Tracker */}
         <div className="mb-10 p-4 sm:p-6 rounded-2xl bg-white border border-sky-100 shadow-sm">
@@ -1566,85 +2016,155 @@ export default function ApplicationFormPage({
                 </div>
               )}
 
-              {/* Razorpay Payment Box with Itemized GST Breakdown Table */}
+              {/* Razorpay Payment Box with Itemized 2-Installment (35% / 65%) GST Breakdown Table */}
               {(() => {
-                const activeGst = feeOption === 'package' && packageGstInfo ? packageGstInfo : (tokenGst || calculateGstBreakdown(999));
+                const totalFeeNum = userRecord?.total_fee || (packageGstInfo ? packageGstInfo.totalPayable : 82599);
+                const inst1AmountNum = userRecord?.installment1_amount || Math.round(totalFeeNum * 0.35);
+                const inst2AmountNum = userRecord?.installment2_amount || (totalFeeNum - inst1AmountNum);
+                const inst1Status = userRecord?.installment1_status || 'pending';
+                const inst2Status = userRecord?.installment2_status || 'locked';
+
+                const isPayingInst2 = inst1Status === 'paid' && inst2Status === 'pending';
+                const currentDueAmount = isPayingInst2 ? inst2AmountNum : inst1AmountNum;
+
                 return (
-                  <div className="p-6 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-5 border border-sky-800/40">
+                  <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-6 border border-sky-800/40">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                       <div>
                         <div className="flex items-center gap-2">
                           <CreditCard className="w-5 h-5 text-sky-400" />
                           <span className="font-mono text-xs uppercase tracking-wider text-sky-300 font-bold">
-                            Official Razorpay Checkout
+                            Official Razorpay Payment Gateway
                           </span>
                         </div>
                         <h3 className="font-display font-extrabold text-xl text-white mt-1">
-                          {feeOption === 'package' && packageGstInfo
-                            ? `${formData.packageSelected} Payment`
-                            : 'Counselling Registration & Processing Fee'}
+                          {formData.packageSelected || 'Counselling Advisory Package'}
                         </h3>
+                        <p className="text-xs text-slate-300 mt-0.5">
+                          Total Approved Package Fee: <strong className="text-white">₹{totalFeeNum.toLocaleString('en-IN')}</strong> (18% GST Included)
+                        </p>
                       </div>
 
                       <div className="text-left sm:text-right">
-                        <span className="text-xs font-mono text-slate-300 block">Total Payable Now</span>
+                        <span className="text-xs font-mono text-slate-300 block">
+                          {inst1Status === 'paid' && inst2Status === 'paid'
+                            ? 'Ledger Cleared'
+                            : isPayingInst2
+                            ? 'Installment 2 Due (65%)'
+                            : 'Installment 1 Payable Now (35%)'}
+                        </span>
                         <span className="text-3xl font-display font-black text-emerald-400">
-                          {activeGst.formattedTotal}
+                          {inst1Status === 'paid' && inst2Status === 'paid'
+                            ? '100% Paid ✓'
+                            : `₹${currentDueAmount.toLocaleString('en-IN')}`}
                         </span>
                       </div>
                     </div>
 
-                    {/* Official Itemized GST Breakdown Table as requested */}
-                    <div className="bg-slate-950/80 border border-sky-800/60 rounded-2xl p-4 font-mono text-xs space-y-2 shadow-inner">
-                      <div className="flex items-center justify-between pb-2 border-b border-white/10 text-sky-300 font-bold uppercase text-[11px] tracking-wider">
-                        <span>Item</span>
-                        <span>Amount</span>
+                    {/* 2-Installment Visual Roadmap Cards (35% & 65%) */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {/* Installment 1 Card */}
+                      <div className={`p-4 rounded-2xl border ${
+                        inst1Status === 'paid'
+                          ? 'bg-emerald-950/40 border-emerald-500/60'
+                          : 'bg-white/5 border-sky-400/40 ring-2 ring-sky-400/20'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-mono uppercase font-bold text-sky-200">
+                            Installment 1 of 2 (35%)
+                          </span>
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${
+                            inst1Status === 'paid' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30' : 'bg-sky-400/20 text-sky-300 border border-sky-400/30'
+                          }`}>
+                            {inst1Status === 'paid' ? 'Paid ✓' : 'Payable Now'}
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-white font-display">
+                          ₹{inst1AmountNum.toLocaleString('en-IN')}
+                        </div>
+                        <p className="text-[11px] text-slate-300 mt-1">
+                          Advance dossier vetting, category rank predictive modeling, and senior counsellor allocation.
+                        </p>
                       </div>
-                      <div className="flex items-center justify-between text-slate-300">
-                        <span>Package price</span>
-                        <span className="font-semibold text-white">{activeGst.formattedBase}</span>
-                      </div>
-                      <div className="flex items-center justify-between text-slate-300">
-                        <span>GST 18%</span>
-                        <span className="font-semibold text-coral-400">+{activeGst.formattedGst}</span>
-                      </div>
-                      <div className="pt-2 border-t border-white/15 flex items-center justify-between text-sm font-extrabold text-white">
-                        <span className="text-emerald-400">Total payable</span>
-                        <span className="text-emerald-400 text-base">{activeGst.formattedTotal}</span>
+
+                      {/* Installment 2 Card */}
+                      <div className={`p-4 rounded-2xl border ${
+                        inst2Status === 'paid'
+                          ? 'bg-emerald-950/40 border-emerald-500/60'
+                          : inst2Status === 'pending'
+                          ? 'bg-amber-950/40 border-amber-400 ring-2 ring-amber-400/30'
+                          : 'bg-white/5 border-white/10 opacity-75'
+                      }`}>
+                        <div className="flex items-center justify-between mb-1.5">
+                          <span className="text-xs font-mono uppercase font-bold text-slate-300">
+                            Installment 2 of 2 (65%)
+                          </span>
+                          <span className={`text-[10px] font-mono px-2 py-0.5 rounded-full font-bold uppercase ${
+                            inst2Status === 'paid'
+                              ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/30'
+                              : inst2Status === 'pending'
+                              ? 'bg-amber-400/20 text-amber-300 border border-amber-400/30'
+                              : 'bg-slate-700/50 text-slate-400 border border-slate-600/30'
+                          }`}>
+                            {inst2Status === 'paid' ? 'Paid ✓' : inst2Status === 'pending' ? 'Pending (Open)' : 'Locked'}
+                          </span>
+                        </div>
+                        <div className="text-2xl font-black text-white font-display">
+                          ₹{inst2AmountNum.toLocaleString('en-IN')}
+                        </div>
+                        <p className="text-[11px] text-slate-300 mt-1">
+                          {inst2Status === 'locked'
+                            ? 'Opens after senior counselling session is completed by admin.'
+                            : 'Unpinned by admin. Final choice preference locking sheet and allotment support.'}
+                        </p>
                       </div>
                     </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Includes 1-on-1 Senior Counsellor Allocation</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Instant Payment Confirmation via SMS & WhatsApp</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                    <span>Supports UPI, NetBanking (50+ Banks) & Cards</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Lock className="w-4 h-4 text-sky-400 shrink-0" />
-                    <span>256-Bit SSL Encrypted by Razorpay Gateway</span>
-                  </div>
-                </div>
+                    {/* Official Itemized GST Breakdown Table */}
+                    <div className="bg-slate-950/80 border border-sky-800/60 rounded-2xl p-4 font-mono text-xs space-y-2 shadow-inner">
+                      <div className="flex items-center justify-between pb-2 border-b border-white/10 text-sky-300 font-bold uppercase text-[11px] tracking-wider">
+                        <span>Payment Milestone</span>
+                        <span>Amount</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>Total Package (Incl. 18% GST)</span>
+                        <span className="font-semibold text-white">₹{totalFeeNum.toLocaleString('en-IN')}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>Installment 1 Advance (35%)</span>
+                        <span className={`font-semibold ${inst1Status === 'paid' ? 'text-emerald-400' : 'text-sky-300'}`}>
+                          ₹{inst1AmountNum.toLocaleString('en-IN')} {inst1Status === 'paid' ? '(Paid ✓)' : ''}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between text-slate-300">
+                        <span>Installment 2 Remaining (65%)</span>
+                        <span className={`font-semibold ${inst2Status === 'paid' ? 'text-emerald-400' : inst2Status === 'pending' ? 'text-amber-400' : 'text-slate-400'}`}>
+                          ₹{inst2AmountNum.toLocaleString('en-IN')} {inst2Status === 'locked' ? '(Locked)' : inst2Status === 'paid' ? '(Paid ✓)' : '(Due Now)'}
+                        </span>
+                      </div>
+                    </div>
 
-                {/* High Value Transaction Advisory Notice */}
-                {selectedFee >= 25000 && (
-                  <div className="p-3 rounded-xl bg-sky-900/60 border border-sky-700/50 text-[11px] text-sky-200 flex items-start gap-2">
-                    <span className="text-base shrink-0">💡</span>
-                    <span>
-                      <strong>High-Value Transaction Advisory:</strong> For amounts above ₹25,000, if your daily bank UPI limit is reached, please select <strong>Net Banking</strong> (HDFC, SBI, ICICI, Axis, etc.) or <strong>Debit / Credit Card</strong> inside Razorpay for guaranteed instant processing.
-                    </span>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs text-slate-300">
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Instant Payment Confirmation via SMS & WhatsApp</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Supports UPI, NetBanking (50+ Banks) & Cards</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Lock className="w-4 h-4 text-sky-400 shrink-0" />
+                        <span>256-Bit SSL Encrypted by Razorpay Gateway</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
+                        <span>Legally Compliant GST Tax Invoice Dispatched</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </div>
-            );
-          })()}
+                );
+              })()}
 
               {/* Declarations Checkboxes */}
               <div className="space-y-3 pt-2">
@@ -1699,37 +2219,69 @@ export default function ApplicationFormPage({
               </button>
             ) : (
               <div className="flex flex-col sm:flex-row items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleSimulateTestPayment}
-                  disabled={submitting}
-                  className="w-full sm:w-auto px-5 py-3.5 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-                >
-                  <Sparkles className="w-4 h-4 text-emerald-600" />
-                  <span>🧪 Simulate Payment & Send Invoice (Test)</span>
-                </button>
+                {(() => {
+                  const inst1Paid = userRecord?.installment1_status === 'paid';
+                  const inst2Pending = userRecord?.installment2_status === 'pending';
+                  const inst2Paid = userRecord?.installment2_status === 'paid';
 
-                <button
-                  onClick={handleRazorpayPaymentAndSubmit}
-                  disabled={submitting}
-                  className={`w-full sm:w-auto px-7 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all ${
-                    submitting
-                      ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                      : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
-                  }`}
-                >
-                  {submitting ? (
+                  return (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Processing Razorpay Checkout...</span>
+                      <button
+                        type="button"
+                        onClick={() => handleSimulateTestPayment(inst1Paid && inst2Pending ? 2 : 1)}
+                        disabled={submitting || (inst1Paid && !inst2Pending)}
+                        className="w-full sm:w-auto px-5 py-3.5 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
+                      >
+                        <Sparkles className="w-4 h-4 text-emerald-600" />
+                        <span>🧪 Simulate {inst1Paid && inst2Pending ? '65%' : '35%'} Payment (Test)</span>
+                      </button>
+
+                      {inst1Paid && !inst2Pending && !inst2Paid ? (
+                        <button
+                          disabled
+                          className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2 border border-slate-300"
+                        >
+                          <Lock className="w-4 h-4" />
+                          <span>35% Paid (65% Opens After Counselling)</span>
+                        </button>
+                      ) : inst2Paid ? (
+                        <button
+                          disabled
+                          className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm cursor-default flex items-center justify-center gap-2 border border-emerald-300"
+                        >
+                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                          <span>Payment Complete (100% Paid ✓)</span>
+                        </button>
+                      ) : (
+                        <button
+                          onClick={handleRazorpayPaymentAndSubmit}
+                          disabled={submitting}
+                          className={`w-full sm:w-auto px-7 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all ${
+                            submitting
+                              ? 'bg-slate-400 cursor-not-allowed opacity-75'
+                              : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
+                          }`}
+                        >
+                          {submitting ? (
+                            <>
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                              <span>Processing Razorpay Checkout...</span>
+                            </>
+                          ) : (
+                            <>
+                              <CreditCard className="w-4 h-4" />
+                              <span>
+                                {isPayingInst2
+                                  ? `Pay Remaining 65% (₹${inst2AmountNum.toLocaleString('en-IN')}) with Razorpay`
+                                  : `Pay 35% Advance (₹${inst1AmountNum.toLocaleString('en-IN')}) with Razorpay`}
+                              </span>
+                            </>
+                          )}
+                        </button>
+                      )}
                     </>
-                  ) : (
-                    <>
-                      <CreditCard className="w-4 h-4" />
-                      <span>Pay {typeof selectedFee === 'number' ? `₹${selectedFee.toLocaleString('en-IN')}` : selectedFee} with Razorpay</span>
-                    </>
-                  )}
-                </button>
+                  );
+                })()}
               </div>
             )}
           </div>

@@ -27,7 +27,7 @@ export default function Footer({ onNavigate }) {
 
             <div className="flex items-center gap-3 pt-2">
               <a
-                href="https://wa.me/917779820944"
+                href="https://wa.me/916204934005"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex items-center gap-2 px-4 py-2 rounded-xl bg-emerald-600/90 hover:bg-emerald-600 text-white text-xs font-bold transition-colors shadow-sm"

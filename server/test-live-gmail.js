@@ -66,7 +66,7 @@ Transaction ID: pay_live_${Date.now()}
 Date: 16 Oct 2026
 
 Company Legal Mentorship Terms & Conditions PDF has been attached to this email.
-Helpline: +91 77798 20944 • WhatsApp: +91 77798 20944
+Helpline: +91 77798 20944 • WhatsApp: +91 62049 34005
 Email: thecerebralcompass@gmail.com`,
     html: `
     <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; overflow: hidden;">
@@ -108,7 +108,7 @@ Email: thecerebralcompass@gmail.com`,
       </div>
       <div style="background: #f8fafc; padding: 16px; text-align: center; font-size: 11px; color: #64748b; border-top: 1px solid #e2e8f0;">
         Cerebral Compass Pvt Ltd • Muzaffarpur, Bihar - 842002<br>
-        Helpline: +91 77798 20944 • WhatsApp: +91 77798 20944 • Email: thecerebralcompass@gmail.com
+        Helpline: +91 77798 20944 • WhatsApp: +91 62049 34005 • Email: thecerebralcompass@gmail.com
       </div>
     </div>
     `,

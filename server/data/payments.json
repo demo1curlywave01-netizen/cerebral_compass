@@ -1,0 +1,16 @@
+[
+  {
+    "id": "PAY-1792661938250-86",
+    "payment_id": "pay_real_signature_test",
+    "order_id": "order_TqtXhhhz688msd",
+    "uid": "demo_priya_2026",
+    "student_name": "Priya Verma",
+    "package_name": "MBBS Plan: Private Counselling Plan (₹82,598.82)",
+    "amount": 53689,
+    "currency": "INR",
+    "installment_number": 2,
+    "payment_method": "Razorpay Verified",
+    "status": "paid",
+    "created_at": "2026-10-22T09:38:58.252Z"
+  }
+]

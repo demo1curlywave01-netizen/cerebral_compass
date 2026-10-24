@@ -4,7 +4,7 @@ export const siteData = {
     tagline: 'Your Career. Your Direction. Your Future.',
     subtagline: 'Premier Educational Consultancy for Medical, Engineering, Management, UG/PG and Global Universities.',
     phone: '+91 77798 20944',
-    whatsapp: '+91 77798 20944',
+    whatsapp: '+91 62049 34005',
     email: 'thecerebralcompass@gmail.com',
     address: 'Muzaffarpur, Bihar - 842002',
     hours: 'Mon - Sat: 10:00 AM - 6:00 PM IST',

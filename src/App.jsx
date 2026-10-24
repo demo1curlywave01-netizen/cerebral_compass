@@ -10,6 +10,8 @@ import PackagesPaymentPage from './pages/PackagesPaymentPage';
 import AboutContactPage from './pages/AboutContactPage';
 import LegalPage from './pages/LegalPage';
 import AdminPage from './pages/AdminPage';
+import AuthPage from './pages/AuthPage';
+import CandidateDashboardPage from './pages/CandidateDashboardPage';
 
 export default function App() {
   const getInitialPage = () => {
@@ -71,6 +73,22 @@ export default function App() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [activePage]);
+
+  // Detect incoming Google OAuth login redirect callback
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash;
+      const search = window.location.search;
+      if (
+        hash.includes('access_token=') ||
+        hash.includes('type=recovery') ||
+        search.includes('code=')
+      ) {
+        // Automatically route to candidate application dossier on successful OAuth return
+        setActivePage('application');
+      }
+    }
+  }, []);
 
   // Handlers for cross-page interactive pipelines
   const handleApplyWithCourse = (courseCode) => {
@@ -147,6 +165,21 @@ export default function App() {
 
           {activePage === 'admin' && (
             <AdminPage />
+          )}
+
+          {activePage === 'auth' && (
+            <AuthPage
+              onNavigate={setActivePage}
+              onAuthSuccess={(user) => {
+                setActivePage('dashboard');
+              }}
+            />
+          )}
+
+          {activePage === 'dashboard' && (
+            <CandidateDashboardPage
+              onNavigate={setActivePage}
+            />
           )}
         </div>
       </main>
