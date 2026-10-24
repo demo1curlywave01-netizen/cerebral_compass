@@ -68,6 +68,11 @@ if (typeof window !== 'undefined' && supabase) {
       if (session?.user) {
         const user = formatSupabaseUser(session.user);
         setCurrentUser(user);
+
+        // Strip the long access_token hash from address bar once authenticated
+        if (typeof window !== 'undefined' && window.location.hash?.includes('access_token=')) {
+          window.history.replaceState(null, '', window.location.pathname);
+        }
       } else if (event === 'SIGNED_OUT') {
         setCurrentUser(null);
       }

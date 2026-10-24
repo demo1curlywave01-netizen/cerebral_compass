@@ -86,6 +86,13 @@ export default function App() {
       ) {
         // Automatically route to candidate application dossier on successful OAuth return
         setActivePage('application');
+
+        // Automatically clean up the long OAuth token hash from the URL bar
+        setTimeout(() => {
+          if (window.history && window.history.replaceState) {
+            window.history.replaceState(null, '', window.location.pathname);
+          }
+        }, 400);
       }
     }
   }, []);
