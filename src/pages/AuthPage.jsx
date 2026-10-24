@@ -3,7 +3,6 @@ import {
   loginWithGoogle,
   loginWithEmail,
   registerWithEmail,
-  loginWithDemo,
 } from '../services/authService';
 import {
   Lock,
@@ -94,12 +93,6 @@ export default function AuthPage({ onNavigate, onAuthSuccess }) {
     }
   };
 
-  const handleDemoSelect = (type) => {
-    const res = loginWithDemo(type);
-    if (res.success && res.user) {
-      handleSuccess(res.user);
-    }
-  };
 
   return (
     <div className="pt-28 pb-20 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
@@ -307,55 +300,7 @@ export default function AuthPage({ onNavigate, onAuthSuccess }) {
           </button>
         </form>
 
-        {/* Instant Demo Testing Profiles (Requirement 4 & 5 Verification Helper) */}
-        <div className="pt-4 border-t border-slate-100 space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-mono uppercase font-bold text-slate-600 tracking-wider">
-              Quick Demo Personas
-            </span>
-            <span className="text-[10px] text-brand-600 font-bold bg-brand-50 px-2 py-0.5 rounded-full">
-              1-Click Testing
-            </span>
-          </div>
 
-          <div className="grid grid-cols-2 gap-2 text-[11px]">
-            <button
-              type="button"
-              onClick={() => handleDemoSelect('fresh')}
-              className="p-2.5 text-left rounded-xl border border-slate-200 bg-slate-50 hover:bg-brand-50 hover:border-brand-300 transition-all group"
-            >
-              <div className="font-bold text-slate-800 group-hover:text-brand-700">1. Fresh Applicant</div>
-              <div className="text-[10px] text-slate-600">New Registration Flow (35%)</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDemoSelect('returning_locked')}
-              className="p-2.5 text-left rounded-xl border border-slate-200 bg-slate-50 hover:bg-brand-50 hover:border-brand-300 transition-all group"
-            >
-              <div className="font-bold text-slate-800 group-hover:text-brand-700">2. Priya Verma</div>
-              <div className="text-[10px] text-slate-600">35% Paid, 65% Locked</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDemoSelect('returning_pending')}
-              className="p-2.5 text-left rounded-xl border border-slate-200 bg-slate-50 hover:bg-brand-50 hover:border-brand-300 transition-all group"
-            >
-              <div className="font-bold text-slate-800 group-hover:text-brand-700">3. Rohan Kulkarni</div>
-              <div className="text-[10px] text-amber-700 font-bold">65% Open (Pay Now)</div>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleDemoSelect('completed')}
-              className="p-2.5 text-left rounded-xl border border-slate-200 bg-slate-50 hover:bg-brand-50 hover:border-brand-300 transition-all group"
-            >
-              <div className="font-bold text-slate-800 group-hover:text-brand-700">4. Dr. Aarav Sharma</div>
-              <div className="text-[10px] text-emerald-700 font-bold">100% Paid & Receipt</div>
-            </button>
-          </div>
-        </div>
       </div>
     </div>
   );

@@ -62,6 +62,12 @@ export default function Navbar({ activePage, setActivePage }) {
           <img
             src="/logo.png"
             alt="Cerebral Compass Pvt Ltd Logo"
+            onError={(e) => {
+              if (!e.currentTarget.dataset.fallback) {
+                e.currentTarget.dataset.fallback = '1';
+                e.currentTarget.src = '/logo.jpeg';
+              }
+            }}
             className="h-14 sm:h-16 w-auto object-contain transition-transform duration-300 group-hover:scale-105 filter drop-shadow-sm"
           />
         </button>

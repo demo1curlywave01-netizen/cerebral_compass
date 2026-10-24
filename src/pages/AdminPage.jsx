@@ -154,12 +154,6 @@ export default function AdminPage({ onNavigate }) {
     setUserMenuOpen(false);
   };
 
-  // Quick autofill demo credentials
-  const handleQuickDemoFill = () => {
-    setAdminIdInput('admin');
-    setAdminKeyInput('admin123');
-    setLoginError('');
-  };
 
   // Load Data from Supabase / Backend
   const loadData = async () => {
@@ -417,7 +411,7 @@ export default function AdminPage({ onNavigate }) {
               </div>
             </div>
 
-            {/* Remember me & Demo Autofill Pill */}
+            {/* Remember me */}
             <div className="flex items-center justify-between pt-1 text-xs">
               <label className="flex items-center gap-2 cursor-pointer select-none text-slate-600">
                 <input
@@ -428,14 +422,6 @@ export default function AdminPage({ onNavigate }) {
                 />
                 <span className="font-medium">Remember me</span>
               </label>
-
-              <button
-                type="button"
-                onClick={handleQuickDemoFill}
-                className="text-[11px] text-blue-600 hover:text-blue-800 font-semibold hover:underline"
-              >
-                Auto-fill Demo Key
-              </button>
             </div>
 
             <button

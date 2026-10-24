@@ -550,31 +550,6 @@ export default function ApplicationFormPage({
     setFormData({ ...formData, documents: updatedDocs });
   };
 
-  // Auto-attach sample documents for quick testing
-  const handleQuickAttachDocs = () => {
-    const sampleNames = [
-      'Candidate_Recent_Photograph.jpg',
-      `Aadhaar_Card_${formData.personal.aadhaar.replace(/\D/g, '').slice(-4) || '8492'}.pdf`,
-      'Class_10th_CBSE_Marksheet.pdf',
-      'Class_12th_Pre_Board_Marksheet.pdf',
-      `${formData.academic.entranceExam.replace(/\s+/g, '_')}_Admit_Scorecard.pdf`,
-    ];
-
-    const updatedDocs = formData.documents.map((doc, idx) => {
-      if (doc.required) {
-        return {
-          ...doc,
-          name: sampleNames[idx] || `${doc.type.replace(/\s+/g, '_')}.pdf`,
-          size: `${Math.floor(180 + Math.random() * 200)} KB`,
-          status: 'Uploaded & Vaulted ✓',
-        };
-      }
-      return doc;
-    });
-
-    setFormData((prev) => ({ ...prev, documents: updatedDocs }));
-    setErrorMsg('');
-  };
 
   // Server-Verified 2-Installment Payment Handler
   const handlePayInstallment = async (instNum = 1) => {
@@ -748,65 +723,6 @@ export default function ApplicationFormPage({
     await handlePayInstallment(1);
   };
 
-  // Quick Simulation for Instant Testing without Live Bank Card
-  const handleSimulateTestPayment = async () => {
-    setErrorMsg('');
-    setSubmitting(true);
-    const instNum = payingInstallmentNum || 1;
-
-    const activeUser = currentUser || getCurrentUser();
-    let activeUid = activeUser?.uid || `student_${Date.now()}`;
-
-    try {
-      // 1. Save data to users table
-      await saveUserRegistration({
-        uid: activeUid,
-        name: formData.personal.studentName,
-        email: formData.personal.email,
-        phone: formData.personal.mobile,
-        ...formData,
-      });
-
-      // 2. Verify simulation with backend
-      const simTxn = `pay_sim_${Date.now()}`;
-      const verifyRes = await verifyPaymentApi({
-        uid: activeUid,
-        orderId: `order_sim_${Date.now()}`,
-        paymentId: simTxn,
-        signature: 'simulated_valid_sig',
-        installmentNumber: instNum,
-      });
-
-      if (verifyRes.user) {
-        setUserRecord(verifyRes.user);
-      }
-
-      confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-
-      const amountPaidNum = instNum === 1
-        ? (verifyRes.user?.installment1_amount || 28910)
-        : (verifyRes.user?.installment2_amount || 53689);
-
-      const receiptRecord = {
-        id: activeUid,
-        personal: formData.personal,
-        academic: formData.academic,
-        transactionId: simTxn,
-        paidAmount: `₹${Number(amountPaidNum).toLocaleString('en-IN')}`,
-        installmentNumber: instNum,
-        submittedAt: new Date().toISOString(),
-      };
-      setSubmittedData(receiptRecord);
-
-      if (onApplicationSuccess) {
-        onApplicationSuccess(activeUid);
-      }
-    } catch (err) {
-      setErrorMsg(err.message || 'Simulation error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
 
 
 
@@ -1774,14 +1690,7 @@ export default function ApplicationFormPage({
                   </div>
 
                   <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={handleQuickAttachDocs}
-                      className="px-3.5 py-1.5 rounded-xl bg-sky-100 hover:bg-sky-200 text-brand-700 text-xs font-mono font-bold transition-colors"
-                    >
-                      ⚡ Quick Attach All Demo Docs
-                    </button>
-                    <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono font-bold">
+                    <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-700 text-xs font-mono font-bold">
                       <ShieldCheck className="w-4 h-4" />
                       <span>256-Bit Encrypted</span>
                     </div>
@@ -2224,62 +2133,48 @@ export default function ApplicationFormPage({
                   const inst2Pending = userRecord?.installment2_status === 'pending';
                   const inst2Paid = userRecord?.installment2_status === 'paid';
 
-                  return (
-                    <>
-                      <button
-                        type="button"
-                        onClick={() => handleSimulateTestPayment(inst1Paid && inst2Pending ? 2 : 1)}
-                        disabled={submitting || (inst1Paid && !inst2Pending)}
-                        className="w-full sm:w-auto px-5 py-3.5 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-bold text-xs flex items-center justify-center gap-2 transition-all shadow-sm active:scale-95 disabled:opacity-50"
-                      >
-                        <Sparkles className="w-4 h-4 text-emerald-600" />
-                        <span>🧪 Simulate {inst1Paid && inst2Pending ? '65%' : '35%'} Payment (Test)</span>
-                      </button>
-
-                      {inst1Paid && !inst2Pending && !inst2Paid ? (
-                        <button
-                          disabled
-                          className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2 border border-slate-300"
-                        >
-                          <Lock className="w-4 h-4" />
-                          <span>35% Paid (65% Opens After Counselling)</span>
-                        </button>
-                      ) : inst2Paid ? (
-                        <button
-                          disabled
-                          className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm cursor-default flex items-center justify-center gap-2 border border-emerald-300"
-                        >
-                          <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                          <span>Payment Complete (100% Paid ✓)</span>
-                        </button>
+                  return inst1Paid && !inst2Pending && !inst2Paid ? (
+                    <button
+                      disabled
+                      className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-slate-200 text-slate-500 font-bold text-sm cursor-not-allowed flex items-center justify-center gap-2 border border-slate-300"
+                    >
+                      <Lock className="w-4 h-4" />
+                      <span>35% Paid (65% Opens After Counselling)</span>
+                    </button>
+                  ) : inst2Paid ? (
+                    <button
+                      disabled
+                      className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emerald-100 text-emerald-800 font-bold text-sm cursor-default flex items-center justify-center gap-2 border border-emerald-300"
+                    >
+                      <CheckCircle2 className="w-4 h-4 text-emerald-600" />
+                      <span>Payment Complete (100% Paid ✓)</span>
+                    </button>
+                  ) : (
+                    <button
+                      onClick={handleRazorpayPaymentAndSubmit}
+                      disabled={submitting}
+                      className={`w-full sm:w-auto px-7 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all ${
+                        submitting
+                          ? 'bg-slate-400 cursor-not-allowed opacity-75'
+                          : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
+                      }`}
+                    >
+                      {submitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          <span>Processing Razorpay Checkout...</span>
+                        </>
                       ) : (
-                        <button
-                          onClick={handleRazorpayPaymentAndSubmit}
-                          disabled={submitting}
-                          className={`w-full sm:w-auto px-7 py-3.5 rounded-xl text-white font-black text-sm shadow-xl flex items-center justify-center gap-2 transition-all ${
-                            submitting
-                              ? 'bg-slate-400 cursor-not-allowed opacity-75'
-                              : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-sky-600 hover:from-emerald-700 hover:to-sky-700 shadow-emerald-600/30 hover:scale-105 active:scale-95'
-                          }`}
-                        >
-                          {submitting ? (
-                            <>
-                              <Loader2 className="w-4 h-4 animate-spin" />
-                              <span>Processing Razorpay Checkout...</span>
-                            </>
-                          ) : (
-                            <>
-                              <CreditCard className="w-4 h-4" />
-                              <span>
-                                {isPayingInst2
-                                  ? `Pay Remaining 65% (₹${inst2AmountNum.toLocaleString('en-IN')}) with Razorpay`
-                                  : `Pay 35% Advance (₹${inst1AmountNum.toLocaleString('en-IN')}) with Razorpay`}
-                              </span>
-                            </>
-                          )}
-                        </button>
+                        <>
+                          <CreditCard className="w-4 h-4" />
+                          <span>
+                            {isPayingInst2
+                              ? `Pay Remaining 65% (₹${inst2AmountNum.toLocaleString('en-IN')}) with Razorpay`
+                              : `Pay 35% Advance (₹${inst1AmountNum.toLocaleString('en-IN')}) with Razorpay`}
+                          </span>
+                        </>
                       )}
-                    </>
+                    </button>
                   );
                 })()}
               </div>
