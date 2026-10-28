@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Privacy Policy | Cerebral Compass Pvt Ltd</title>
+  <meta name="description" content="Official Privacy Policy and Data Protection Framework for Cerebral Compass Pvt Ltd, detailing Google OAuth data usage, candidate records handling, and user privacy rights." />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --primary: #0284c7;
+      --primary-dark: #0369a1;
+      --navy: #0b2540;
+      --text: #1e293b;
+      --text-muted: #64748b;
+      --bg: #f8fafc;
+      --card-bg: #ffffff;
+      --border: #e2e8f0;
+    }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.7;
+      padding: 0;
+    }
+    header {
+      background-color: var(--navy);
+      color: white;
+      padding: 2.5rem 1.5rem;
+      border-bottom: 3px solid var(--primary);
+    }
+    .header-inner {
+      max-width: 900px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1.5rem;
+    }
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      background: white;
+      padding: 0.5rem 1rem;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+    .logo-badge img {
+      height: 48px;
+      width: auto;
+    }
+    .header-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 2rem;
+      font-weight: 700;
+      color: #ffffff;
+      margin-bottom: 0.25rem;
+    }
+    .header-title p {
+      color: #94a3b8;
+      font-size: 0.9rem;
+    }
+    .container {
+      max-width: 900px;
+      margin: 2.5rem auto;
+      padding: 0 1.5rem;
+    }
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 2.5rem;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+      margin-bottom: 2rem;
+    }
+    .badge {
+      display: inline-block;
+      padding: 0.35rem 0.85rem;
+      border-radius: 9999px;
+      background-color: #e0f2fe;
+      color: var(--primary-dark);
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 1rem;
+    }
+    h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 1.4rem;
+      color: var(--navy);
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+    h2:first-of-type {
+      margin-top: 0;
+    }
+    h3 {
+      font-size: 1.05rem;
+      color: #0f172a;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+      font-weight: 600;
+    }
+    p {
+      margin-bottom: 1rem;
+      font-size: 0.95rem;
+      color: #334155;
+    }
+    ul, ol {
+      margin-bottom: 1.25rem;
+      padding-left: 1.5rem;
+      color: #334155;
+      font-size: 0.95rem;
+    }
+    li {
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box {
+      background: #f0fdf4;
+      border-left: 4px solid #16a34a;
+      padding: 1.25rem 1.5rem;
+      border-radius: 8px;
+      margin: 1.5rem 0;
+    }
+    .highlight-box.google-box {
+      background: #eff6ff;
+      border-left: 4px solid #0284c7;
+    }
+    .highlight-box h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #0c4a6e;
+      margin-bottom: 0.5rem;
+    }
+    .highlight-box p {
+      margin-bottom: 0.5rem;
+      font-size: 0.9rem;
+    }
+    .contact-card {
+      background: #f8fafc;
+      border: 1px solid #cbd5e1;
+      padding: 1.5rem;
+      border-radius: 12px;
+      margin-top: 1.5rem;
+    }
+    .contact-card p {
+      margin-bottom: 0.4rem;
+    }
+    footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border);
+      background: white;
+    }
+    a {
+      color: var(--primary);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      background: #0284c7;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      text-decoration: none;
+      transition: background 0.2s;
+    }
+    .back-btn:hover {
+      background: #0369a1;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="header-inner">
+      <div style="display: flex; align-items: center; gap: 1.25rem;">
+        <div class="logo-badge">
+          <img src="/logo.png" alt="Cerebral Compass Logo" />
+        </div>
+        <div class="header-title">
+          <h1>Cerebral Compass Pvt Ltd</h1>
+          <p>Official Privacy Policy & Data Protection Policy</p>
+        </div>
+      </div>
+      <div>
+        <a href="/" class="back-btn">← Back to Website</a>
+      </div>
+    </div>
+  </header>
+
+  <div class="container">
+    <div class="card">
+      <span class="badge">Legal & Privacy Governance</span>
+      <p style="font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem;">
+        <strong>Effective Date:</strong> January 1, 2026 | <strong>Last Updated:</strong> March 2026 | <strong>Governing Law:</strong> Digital Personal Data Protection (DPDP) Act, 2023 (India) & Applicable Global Data Privacy Standards.
+      </p>
+
+      <h2>1. Introduction & Scope</h2>
+      <p>
+        Welcome to <strong>Cerebral Compass Pvt Ltd</strong> ("we", "our", "us", or "Cerebral Compass"). We operate the educational advisory platform available at <a href="https://cerebralcompass.in">https://cerebralcompass.in</a>. We are an MCA-incorporated, trademark-registered educational consultancy providing admissions guidance, predictive cutoff counseling, documentation auditing, and institutional choice-filling assistance for students in MBBS, Engineering, Management, and Study Abroad programs.
+      </p>
+      <p>
+        This Privacy Policy explains how we collect, use, disclose, protect, and handle your personal data when you visit our website, register for an account, authenticate using Google OAuth, submit an application dossier, or engage with our services.
+      </p>
+
+      <div class="highlight-box google-box">
+        <h4>2. Google OAuth & Google User Data Disclosures</h4>
+        <p>
+          Cerebral Compass offers users the option to authenticate, register, or log into the candidate portal using <strong>Google Sign-In ("Login with Google")</strong> via Google OAuth.
+        </p>
+        <p><strong>2.1 Google Data Accessed:</strong> When you choose to authenticate with Google, we request access only to your basic Google profile information via standard Google OAuth scopes (<code>openid</code>, <code>profile</code>, and <code>email</code>):</p>
+        <ul>
+          <li><strong>Your Full Name:</strong> Used to identify you and address your candidate application.</li>
+          <li><strong>Your Email Address:</strong> Used as your unique account credential, to send application status updates, counseling schedules, and verification alerts.</li>
+          <li><strong>Your Profile Picture URL / Avatar:</strong> Used solely to display your user profile within the candidate dashboard.</li>
+        </ul>
+        <p><strong>2.2 Purpose of Google Data Usage:</strong> We access your Google user data solely to authenticate your identity, create or maintain your student dossier account, and provide seamless access to our counseling portal. We do NOT request access to your Google Drive, Gmail messages, Contacts, Calendar, or any other sensitive or restricted scopes.</p>
+        <p><strong>2.3 Google API Limited Use Requirements:</strong> Cerebral Compass's use and transfer to any other app of information received from Google APIs will adhere to the <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener noreferrer">Google API Services User Data Policy</a>, including the Limited Use requirements.</p>
+        <p><strong>2.4 No Sale or Transfer of Google User Data:</strong> We explicitly state that:
+          <ul>
+            <li>We <strong>NEVER sell, broker, rent, or lease</strong> your Google user data to any third party.</li>
+            <li>We <strong>do NOT use or transfer</strong> Google user data to serve targeted advertisements, behavioral advertising, or data broking.</li>
+            <li>We <strong>do NOT use</strong> your Google user data to train generalized AI/ML foundation models without explicit consent.</li>
+          </ul>
+        </p>
+      </div>
+
+      <h2>3. Personal Information We Collect Directly</h2>
+      <p>In addition to Google OAuth credentials, when you voluntarily apply for counseling on our platform, we may collect:</p>
+      <ul>
+        <li><strong>Candidate Contact Details:</strong> Mobile phone number, WhatsApp contact number, and state/city of residence.</li>
+        <li><strong>Academic & Entrance Records:</strong> Target exam details (e.g. NEET UG/PG, JEE Main/Advanced, CAT, CUET), roll number, rank, percentile, category (General, OBC, SC, ST, EWS), and domicile state.</li>
+        <li><strong>Application Uploads:</strong> Scorecards, admit cards, or verification documents voluntarily uploaded to assist our counselors in evaluating college eligibility.</li>
+        <li><strong>Commercial & Transaction Data:</strong> Package enrollment records, GST invoice details, and transaction reference IDs (processed through secure PCI-DSS compliant gateways such as Razorpay). We <em>never</em> store raw credit/debit card numbers or CVV.</li>
+      </ul>
+
+      <h2>4. How We Use Your Information</h2>
+      <p>We process your data exclusively for legitimate educational advisory purposes:</p>
+      <ul>
+        <li>To provide personalized college cutoff predictions and strategic choice-filling lists.</li>
+        <li>To notify you about counselling registration deadlines, state round schedules, and document checklists.</li>
+        <li>To authenticate and maintain candidate session security across our web application.</li>
+        <li>To generate statutory GST tax invoices and regulatory compliance records.</li>
+        <li>To respond to your queries via email, phone, or WhatsApp.</li>
+      </ul>
+
+      <h2>5. Data Storage, Security & Encryption</h2>
+      <p>
+        We treat student and parent data with utmost confidentiality and implement enterprise-grade security standards:
+      </p>
+      <ul>
+        <li><strong>Encryption in Transit:</strong> All data transmitted between your browser and our servers is encrypted using modern Transport Layer Security (TLS 1.3 / SSL).</li>
+        <li><strong>Encryption at Rest:</strong> All database records and uploaded files are stored in secured cloud databases with AES-256 standard encryption.</li>
+        <li><strong>Access Controls:</strong> Access to candidate information is strictly restricted to assigned senior counselors and verified staff on a need-to-know basis.</li>
+      </ul>
+
+      <h2>6. Data Retention & Account Deletion Policy</h2>
+      <p>
+        We retain candidate data only for as long as necessary to fulfill the counseling and admission services for the relevant academic year, or as required by applicable Indian tax and legal regulations.
+      </p>
+      <p><strong>How to Request Data Deletion:</strong> You have the right to request the complete deletion of your account and associated personal data at any time:</p>
+      <ol>
+        <li>Send an email to our Grievance Officer at <a href="mailto:thecerebralcompass@gmail.com">thecerebralcompass@gmail.com</a> with the subject line <em>"Request for Data Deletion"</em>, specifying your registered email address.</li>
+        <li>Your request will be acknowledged and fulfilled within 7 business days. Upon deletion, all personal data, Google profile associations, and uploaded documents will be permanently purged from active systems.</li>
+        <li><strong>Revoking Google Access:</strong> You can also instantly revoke Cerebral Compass's access to your Google account at any time by visiting your Google Account Security Settings at <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener noreferrer">https://myaccount.google.com/permissions</a>.</li>
+      </ol>
+
+      <h2>7. Third-Party Disclosures & Integrations</h2>
+      <p>
+        We do not share your personal information with third parties except in the following limited circumstances:
+      </p>
+      <ul>
+        <li><strong>Infrastructure Providers:</strong> Trusted cloud hosting and database providers (such as Supabase, Vercel) that adhere to ISO/IEC 27001 and SOC 2 security compliance.</li>
+        <li><strong>Payment Processors:</strong> PCI-DSS certified payment gateways (Razorpay) for processing booking transactions securely.</li>
+        <li><strong>Legal Compliance:</strong> When strictly mandated by court orders, government authorities, or statutory law enforcement agencies under applicable Indian jurisdiction.</li>
+      </ul>
+
+      <h2>8. Children's & Minor's Privacy</h2>
+      <p>
+        Our services are intended for students preparing for higher education admissions (undergraduate and postgraduate). If an applicant is a minor (under the age of 18), counseling services and data submission must be conducted with the explicit consent and supervision of a parent or legal guardian.
+      </p>
+
+      <h2>9. Grievance Officer & Contact Information</h2>
+      <p>
+        In accordance with the Information Technology Act, 2000, the Digital Personal Data Protection Act, 2023, and rules made thereunder, the contact details of our Grievance Redressal Officer are provided below:
+      </p>
+
+      <div class="contact-card">
+        <p><strong style="color: #0b2540;">Company Name:</strong> Cerebral Compass Pvt Ltd</p>
+        <p><strong style="color: #0b2540;">CIN / Incorporation:</strong> Trademark Registered & MCA Incorporated</p>
+        <p><strong style="color: #0b2540;">Grievance Officer:</strong> Adv. Sandeep Rawat (Head of Regulatory Affairs & Grievances)</p>
+        <p><strong style="color: #0b2540;">Official Support Email:</strong> <a href="mailto:thecerebralcompass@gmail.com">thecerebralcompass@gmail.com</a></p>
+        <p><strong style="color: #0b2540;">Phone Helpline:</strong> +91 77798 20944 / +91 62049 34005</p>
+        <p><strong style="color: #0b2540;">Headquarters / Office:</strong> Muzaffarpur, Bihar - 842002, India</p>
+        <p><strong style="color: #0b2540;">Official Website:</strong> <a href="https://cerebralcompass.in">https://cerebralcompass.in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>&copy; 2026 Cerebral Compass Pvt Ltd. All Rights Reserved. | <a href="/terms-and-conditions.html">Terms & Conditions</a> | <a href="/privacy-policy.html">Privacy Policy</a></p>
+  </footer>
+
+</body>
+</html>

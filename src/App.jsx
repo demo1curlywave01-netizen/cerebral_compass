@@ -14,7 +14,7 @@ import AuthPage from './pages/AuthPage';
 import CandidateDashboardPage from './pages/CandidateDashboardPage';
 
 export default function App() {
-  const getInitialPage = () => {
+  const getInitialRouting = () => {
     if (typeof window !== 'undefined') {
       const path = window.location.pathname.toLowerCase();
       const hash = window.location.hash.toLowerCase();
@@ -25,30 +25,47 @@ export default function App() {
         hash.includes('admin') ||
         search.includes('admin')
       ) {
-        return 'admin';
+        return { page: 'admin', legalTab: 'terms' };
+      }
+      if (path.includes('privacy') || hash.includes('privacy') || search.includes('privacy')) {
+        return { page: 'legal', legalTab: 'privacy' };
+      }
+      if (path.includes('terms') || hash.includes('terms') || search.includes('terms')) {
+        return { page: 'legal', legalTab: 'terms' };
+      }
+      if (path.includes('refund') || hash.includes('refund') || search.includes('refund')) {
+        return { page: 'legal', legalTab: 'refund' };
+      }
+      if (path === '/legal' || hash.includes('legal')) {
+        return { page: 'legal', legalTab: 'terms' };
+      }
+      if (path === '/courses' || hash.includes('courses')) {
+        return { page: 'courses', legalTab: 'terms' };
+      }
+      if (path === '/about' || hash.includes('about')) {
+        return { page: 'about', legalTab: 'terms' };
+      }
+      if (path === '/auth' || path === '/login' || hash.includes('login') || hash.includes('auth')) {
+        return { page: 'auth', legalTab: 'terms' };
       }
     }
-    return 'home';
+    return { page: 'home', legalTab: 'terms' };
   };
 
-  const [activePage, setActivePage] = useState(getInitialPage);
+  const initialRoute = getInitialRouting();
+  const [activePage, setActivePage] = useState(initialRoute.page);
+  const [activeLegalTab, setActiveLegalTab] = useState(initialRoute.legalTab);
   const [prefilledCourse, setPrefilledCourse] = useState('');
   const [selectedPackageName, setSelectedPackageName] = useState('');
   const [activeApplicationId, setActiveApplicationId] = useState('');
 
-  // Handle browser URL /admin routing and back/forward navigation
+  // Handle browser URL routing and back/forward navigation
   useEffect(() => {
     const handlePopState = () => {
-      const path = window.location.pathname.toLowerCase();
-      const hash = window.location.hash.toLowerCase();
-      const search = window.location.search.toLowerCase();
-      if (
-        path === '/admin' ||
-        path.startsWith('/admin/') ||
-        hash.includes('admin') ||
-        search.includes('admin')
-      ) {
-        setActivePage('admin');
+      const route = getInitialRouting();
+      setActivePage(route.page);
+      if (route.page === 'legal') {
+        setActiveLegalTab(route.legalTab);
       }
     };
 
@@ -56,18 +73,23 @@ export default function App() {
     return () => window.removeEventListener('popstate', handlePopState);
   }, []);
 
-  // Update browser address bar when switching to or from admin
+  // Update browser address bar cleanly
   useEffect(() => {
     if (typeof window !== 'undefined') {
       if (activePage === 'admin') {
         if (window.location.pathname !== '/admin') {
           window.history.pushState(null, '', '/admin');
         }
-      } else if (window.location.pathname === '/admin') {
+      } else if (activePage === 'legal') {
+        const targetPath = activeLegalTab === 'privacy' ? '/privacy-policy' : activeLegalTab === 'terms' ? '/terms' : '/legal';
+        if (window.location.pathname !== targetPath) {
+          window.history.pushState(null, '', targetPath);
+        }
+      } else if (window.location.pathname === '/admin' || window.location.pathname.includes('privacy') || window.location.pathname.includes('terms')) {
         window.history.pushState(null, '', '/');
       }
     }
-  }, [activePage]);
+  }, [activePage, activeLegalTab]);
 
   // Scroll smoothly to top on page switch
   useEffect(() => {
@@ -167,7 +189,7 @@ export default function App() {
           )}
 
           {activePage === 'legal' && (
-            <LegalPage />
+            <LegalPage initialTab={activeLegalTab} />
           )}
 
           {activePage === 'admin' && (
@@ -195,7 +217,12 @@ export default function App() {
       <FloatingWhatsApp />
 
       {/* Global Footer */}
-      <Footer onNavigate={setActivePage} />
+      <Footer
+        onNavigate={(page, tab) => {
+          setActivePage(page);
+          if (tab) setActiveLegalTab(tab);
+        }}
+      />
     </div>
   );
 }

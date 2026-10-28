@@ -11,8 +11,18 @@ import {
   Printer,
 } from 'lucide-react';
 
-export default function LegalPage() {
-  const [activeTab, setActiveTab] = useState('terms');
+export default function LegalPage({ initialTab = 'terms' }) {
+  const [activeTab, setActiveTab] = useState(() => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      const hash = window.location.hash.toLowerCase();
+      const search = window.location.search.toLowerCase();
+      if (path.includes('privacy') || hash.includes('privacy') || search.includes('privacy')) return 'privacy';
+      if (path.includes('terms') || hash.includes('terms') || search.includes('terms')) return 'terms';
+      if (path.includes('refund') || hash.includes('refund') || search.includes('refund')) return 'refund';
+    }
+    return initialTab;
+  });
 
   const tabs = [
     { id: 'terms', label: 'Terms & Conditions', icon: FileText },
@@ -107,25 +117,78 @@ export default function LegalPage() {
 
             {/* 2. PRIVACY POLICY */}
             {activeTab === 'privacy' && (
-              <div className="space-y-4 animate-fadeIn">
+              <div className="space-y-5 animate-fadeIn">
                 <h2 className="text-xl font-display font-bold text-slate-900 border-b border-slate-100 pb-3">
                   2. Privacy Policy & Digital Personal Data Protection
                 </h2>
                 <p>
-                  We are deeply committed to student data privacy in strict compliance with the Digital Personal Data Protection (DPDP) Act, 2023, and international privacy standards.
+                  Cerebral Compass Pvt Ltd is deeply committed to student and parent data privacy in strict compliance with the Digital Personal Data Protection (DPDP) Act, 2023, and international data protection standards.
                 </p>
-                <h3 className="font-bold text-slate-900 text-sm pt-2">2.1 Information Collected</h3>
+
+                {/* Specific Google OAuth Compliance Section */}
+                <div className="p-4 sm:p-5 rounded-2xl bg-sky-50/80 border border-sky-200 text-sky-900 space-y-3">
+                  <h3 className="font-bold text-sky-950 text-sm flex items-center gap-2">
+                    <Shield className="w-4 h-4 text-sky-600" />
+                    2.1 Google OAuth & Google User Data Practices
+                  </h3>
+                  <p className="text-xs text-sky-800 leading-relaxed">
+                    When you use <strong>"Login with Google"</strong> or Google OAuth to sign in or create an account on Cerebral Compass, we request access only to your primary Google account information (Google OAuth scopes: <code className="bg-white/80 px-1 py-0.5 rounded font-mono text-[11px]">openid</code>, <code className="bg-white/80 px-1 py-0.5 rounded font-mono text-[11px]">profile</code>, <code className="bg-white/80 px-1 py-0.5 rounded font-mono text-[11px]">email</code>):
+                  </p>
+                  <ul className="list-disc list-inside space-y-1 text-xs text-sky-900 pl-1">
+                    <li><strong>Candidate Full Name:</strong> To address you and create your unique student counseling record.</li>
+                    <li><strong>Email Address:</strong> To serve as your secure login identity, deliver counseling reports, and send admission deadline notifications.</li>
+                    <li><strong>Profile Picture URL:</strong> Displayed purely on your personal candidate dashboard.</li>
+                  </ul>
+                  <div className="pt-2 text-xs text-sky-900 space-y-2 border-t border-sky-200/60">
+                    <p>
+                      <strong>Google API Limited Use Disclosure:</strong> Cerebral Compass's use and transfer to any other app of information received from Google APIs will adhere to the{' '}
+                      <a
+                        href="https://developers.google.com/terms/api-services-user-data-policy"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="underline font-semibold text-brand-700"
+                      >
+                        Google API Services User Data Policy
+                      </a>
+                      , including the Limited Use requirements.
+                    </p>
+                    <p>
+                      <strong>Zero Sale or Commercial Broking:</strong> We explicitly state that we <strong>NEVER sell, broker, rent, or transfer</strong> Google user data to third-party advertising networks, data brokers, or marketing companies.
+                    </p>
+                  </div>
+                </div>
+
+                <h3 className="font-bold text-slate-900 text-sm pt-1">2.2 Information Collected Directly</h3>
                 <p>
-                  We collect student names, contact information, date of birth, exam scores, scorecards, and identity proofs purely for the execution of college shortlisting and portal verification.
+                  When you voluntarily submit an application dossier or book counseling packages, we collect candidate contact numbers, entrance exam details (NEET UG/PG, JEE, CAT, etc.), roll numbers, rank/scorecards, and domicile category solely for predictive cutoff shortlisting and document auditing.
                 </p>
-                <h3 className="font-bold text-slate-900 text-sm pt-2">2.2 Non-Disclosure to Third Parties</h3>
+
+                <h3 className="font-bold text-slate-900 text-sm pt-1">2.3 Encryption & Security Standards</h3>
                 <p>
-                  We explicitly state that we NEVER sell, broker, or rent candidate personal details or phone numbers to third-party telemarketers, unsolicited private coaching academies, or unauthorized agents.
+                  All data in transit is encrypted using Transport Layer Security (TLS 1.3 / HTTPS). Uploaded candidate credentials, scorecards, and profiles are secured at rest using AES-256 standard encryption on dedicated enterprise cloud databases.
                 </p>
-                <h3 className="font-bold text-slate-900 text-sm pt-2">2.3 Encryption Standards</h3>
+
+                <h3 className="font-bold text-slate-900 text-sm pt-1">2.4 Data Retention & Complete Deletion</h3>
                 <p>
-                  All communication channels are encrypted with TLS 1.3, and uploaded identity and academic credentials are encrypted at rest using AES-256 standard encryption on dedicated servers.
+                  Candidate records are maintained strictly during the active admissions cycle. Users retain the complete right to request the permanent deletion of their account and all associated personal and Google profile records:
                 </p>
+                <ul className="list-disc list-inside space-y-1 text-xs text-slate-700 pl-2">
+                  <li>
+                    <strong>Email Request:</strong> Email our Grievance Officer at <strong className="text-slate-900">thecerebralcompass@gmail.com</strong> with the subject <em>"Delete My Account"</em>. Data will be purged within 7 business days.
+                  </li>
+                  <li>
+                    <strong>Revoking Google Access:</strong> You may instantly disconnect or revoke Cerebral Compass permissions from your Google Account at any time via{' '}
+                    <a
+                      href="https://myaccount.google.com/permissions"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-brand-600 underline font-semibold"
+                    >
+                      Google Security Permissions
+                    </a>
+                    .
+                  </li>
+                </ul>
               </div>
             )}
 

@@ -128,21 +128,21 @@ export default function Footer({ onNavigate }) {
           </div>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => onNavigate('legal')}
+              onClick={() => onNavigate('legal', 'terms')}
               className="hover:text-white transition-colors"
             >
               Terms & Conditions
             </button>
             <span>•</span>
             <button
-              onClick={() => onNavigate('legal')}
+              onClick={() => onNavigate('legal', 'privacy')}
               className="hover:text-white transition-colors"
             >
               Privacy Policy
             </button>
             <span>•</span>
             <button
-              onClick={() => onNavigate('legal')}
+              onClick={() => onNavigate('legal', 'refund')}
               className="hover:text-white transition-colors"
             >
               Refund Policy
