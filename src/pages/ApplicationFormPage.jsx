@@ -75,6 +75,16 @@ export default function ApplicationFormPage({
   const [packageFee, setPackageFee] = useState(null);
   const [packageGstInfo, setPackageGstInfo] = useState(null);
   const [feeOption, setFeeOption] = useState('package'); // 'package' | 'dossier'
+  const [draftSavedTime, setDraftSavedTime] = useState('');
+
+  // Payment and 2-installment calculation scoped at component level
+  const totalFeeNum = userRecord?.total_fee || (packageGstInfo ? packageGstInfo.totalPayable : (tokenGst ? tokenGst.totalPayable : 82599));
+  const inst1AmountNum = userRecord?.installment1_amount || Math.round(totalFeeNum * 0.35);
+  const inst2AmountNum = userRecord?.installment2_amount || (totalFeeNum - inst1AmountNum);
+  const inst1Status = userRecord?.installment1_status || 'pending';
+  const inst2Status = userRecord?.installment2_status || 'locked';
+  const isPayingInst2 = inst1Status === 'paid' && inst2Status === 'pending';
+  const currentDueAmount = isPayingInst2 ? inst2AmountNum : inst1AmountNum;
 
   // Form State across all steps
   // Form State across all steps
@@ -120,6 +130,50 @@ export default function ApplicationFormPage({
     termsAccepted: false,
     accuracyConfirmed: false,
   });
+
+  // Load temporary draft from localStorage on initial render
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('cerebral_application_draft');
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (parsed && typeof parsed === 'object') {
+          setFormData((prev) => ({
+            ...prev,
+            personal: { ...prev.personal, ...(parsed.personal || {}) },
+            academic: { ...prev.academic, ...(parsed.academic || {}) },
+            preferences: { ...prev.preferences, ...(parsed.preferences || {}) },
+            documents: parsed.documents && parsed.documents.length ? parsed.documents : prev.documents,
+            packageSelected: parsed.packageSelected || prev.packageSelected,
+          }));
+          setDraftSavedTime('Restored');
+        }
+      }
+    } catch (e) {
+      console.warn('Could not restore application draft:', e);
+    }
+  }, []);
+
+  // Auto-save form data temporarily to localStorage on change
+  useEffect(() => {
+    try {
+      const hasContent =
+        formData.personal.studentName ||
+        formData.personal.mobile ||
+        formData.personal.email ||
+        formData.personal.parentName ||
+        formData.academic.rankScore ||
+        formData.documents.some((d) => d.name);
+
+      if (hasContent) {
+        localStorage.setItem('cerebral_application_draft', JSON.stringify(formData));
+        const now = new Date();
+        setDraftSavedTime(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }));
+      }
+    } catch (e) {
+      console.warn('Auto-saving application draft failed:', e);
+    }
+  }, [formData]);
 
   // Listen for real-time auth state updates (e.g., from Google OAuth redirect)
   useEffect(() => {
@@ -701,6 +755,7 @@ export default function ApplicationFormPage({
         submittedAt: new Date().toISOString(),
       };
       setSubmittedData(receiptRecord);
+      localStorage.removeItem('cerebral_application_draft');
 
       if (onApplicationSuccess) {
         onApplicationSuccess(activeUid);
@@ -720,7 +775,8 @@ export default function ApplicationFormPage({
       setErrorMsg('Please check both declaration boxes to confirm accuracy and accept terms.');
       return;
     }
-    await handlePayInstallment(1);
+    const instToPay = isPayingInst2 ? 2 : 1;
+    await handlePayInstallment(instToPay);
   };
 
 
@@ -1117,8 +1173,26 @@ export default function ApplicationFormPage({
           </div>
         )}
 
-        {/* Step Progress Tracker */}
+        {/* Step Progress Tracker & Auto-Save Indicator */}
         <div className="mb-10 p-4 sm:p-6 rounded-2xl bg-white border border-sky-100 shadow-sm">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-3.5 mb-4 border-b border-slate-100 gap-2">
+            <span className="font-mono text-slate-500 font-semibold uppercase tracking-wider text-[11px]">
+              Application Dossier Progress ({currentStep} of 5)
+            </span>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              {draftSavedTime ? (
+                <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-emerald-700 bg-emerald-50 border border-emerald-200/80 px-2.5 py-0.5 rounded-full shadow-xs">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                  <span>Draft Auto-Saved {draftSavedTime !== 'Restored' ? `(${draftSavedTime})` : '(Restored)'}</span>
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 text-[11px] text-slate-400 font-mono">
+                  <span className="w-1.5 h-1.5 rounded-full bg-slate-300" />
+                  <span>Auto-save enabled</span>
+                </span>
+              )}
+            </div>
+          </div>
           <div className="grid grid-cols-5 gap-2 sm:gap-4">
             {stepLabels.map((st) => {
               const Icon = st.icon;
@@ -1926,18 +2000,7 @@ export default function ApplicationFormPage({
               )}
 
               {/* Razorpay Payment Box with Itemized 2-Installment (35% / 65%) GST Breakdown Table */}
-              {(() => {
-                const totalFeeNum = userRecord?.total_fee || (packageGstInfo ? packageGstInfo.totalPayable : 82599);
-                const inst1AmountNum = userRecord?.installment1_amount || Math.round(totalFeeNum * 0.35);
-                const inst2AmountNum = userRecord?.installment2_amount || (totalFeeNum - inst1AmountNum);
-                const inst1Status = userRecord?.installment1_status || 'pending';
-                const inst2Status = userRecord?.installment2_status || 'locked';
-
-                const isPayingInst2 = inst1Status === 'paid' && inst2Status === 'pending';
-                const currentDueAmount = isPayingInst2 ? inst2AmountNum : inst1AmountNum;
-
-                return (
-                  <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-6 border border-sky-800/40">
+              <div className="p-6 sm:p-7 rounded-3xl bg-gradient-to-br from-slate-900 via-sky-950 to-brand-950 text-white shadow-xl space-y-6 border border-sky-800/40">
                     <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-white/10">
                       <div>
                         <div className="flex items-center gap-2">
@@ -2072,8 +2135,6 @@ export default function ApplicationFormPage({
                       </div>
                     </div>
                   </div>
-                );
-              })()}
 
               {/* Declarations Checkboxes */}
               <div className="space-y-3 pt-2">

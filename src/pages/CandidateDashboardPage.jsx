@@ -499,7 +499,7 @@ export default function CandidateDashboardPage({ onNavigate, onSelectApplication
                     </div>
                   </div>
 
-                  <div className="space-y-2 pt-1">
+                  <div className="pt-1">
                     <a
                       href={`https://wa.me/916204934005?text=Hello%20Cerebral%20Compass,%20I%20am%20${encodeURIComponent(
                         currentUser.name || 'Candidate'
@@ -510,13 +510,6 @@ export default function CandidateDashboardPage({ onNavigate, onSelectApplication
                     >
                       <MessageCircle className="w-4 h-4" />
                       <span>Chat on WhatsApp</span>
-                    </a>
-                    <a
-                      href="tel:+916204934005"
-                      className="w-full py-2.5 px-4 rounded-xl border border-slate-200 text-slate-700 hover:bg-slate-50 font-bold text-xs transition-colors flex items-center justify-center gap-2"
-                    >
-                      <Phone className="w-4 h-4 text-brand-600" />
-                      <span>Call +91 62049 34005</span>
                     </a>
                   </div>
                 </div>
